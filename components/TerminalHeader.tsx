@@ -51,11 +51,11 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
         </button>
         <button
           onClick={onToggleSound}
-          aria-label="Audio effektlar"
+          aria-label={`SOUND: ${soundEnabled ? 'ON' : 'OFF'} — Audio effektlar`}
           aria-pressed={soundEnabled}
           className="px-2 py-1 rounded text-[11px] border border-emerald-700 text-emerald-300 hover:bg-emerald-950 flex items-center gap-1"
         >
-          <span className="material-symbols-outlined text-[14px]">{soundEnabled ? 'volume_up' : 'volume_off'}</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[14px]">{soundEnabled ? 'volume_up' : 'volume_off'}</span>
           SOUND: {soundEnabled ? 'ON' : 'OFF'}
         </button>
         <button

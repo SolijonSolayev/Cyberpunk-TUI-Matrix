@@ -107,7 +107,7 @@ export default function App() {
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs, activeHackNode, isGridActive]);
   // Terminalni fokusda saqlash
-  const focusInput = (event: React.MouseEvent<HTMLDivElement>) => {
+  const focusInput = (event: React.MouseEvent<HTMLElement>) => {
     if (isWorkspaceOpen || isGridActive || isHelpOpen || isDownloadOpen ||
         (event.target as HTMLElement).closest('button, input, a')) return;
     inputRef.current?.focus();
@@ -428,10 +428,11 @@ export default function App() {
     addLog(`>> GRID REJIMIDAN: ${msg}`, 'success');
   };
   return (
-    <div
+    <main
       onClick={focusInput}
       className="crt-terminal relative w-full h-full min-h-[550px] flex flex-col bg-[#050805] text-[#22c55e] font-mono select-text overflow-hidden"
     >
+      <h1 className="sr-only">Cyberpunk TUI Matrix — terminal o‘yini va Browser Lab</h1>
       {/* Orqa fondagi Matritsa */}
       <MatrixRainCanvas active={isMatrixRain} />
       {/* Yuqori TUI Status bar */}
@@ -598,6 +599,6 @@ export default function App() {
       {workspaceOpened && <Suspense fallback={<div className="fixed inset-0 z-[60] bg-black text-emerald-300 p-8">Brauzer terminali yuklanmoqda…</div>}>
         <BrowserWorkspace open={isWorkspaceOpen} onClose={() => setIsWorkspaceOpen(false)}/>
       </Suspense>}
-    </div>
+    </main>
   );
 }

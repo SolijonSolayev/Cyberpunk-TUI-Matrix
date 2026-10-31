@@ -1,0 +1,23 @@
+# Cyberpunk TUI Matrix
+
+> An Uzbek-language cyberpunk terminal game and browser-based Node.js/npm workspace.
+
+The application has a green CRT terminal interface, Matrix Rain, an ASCII roguelike maze, HEX buffer puzzles, fictional credits, consumable game tools, resource upgrades, and opt-in synthesized audio. Game commands such as `scan`, `probe`, and `hack` operate only on simulated targets.
+
+Browser Lab is a separate WebContainer-powered Node.js/npm workspace with a terminal, text editor, local IndexedDB storage, file uploads, ZIP export, and application preview. It runs browser-side; it is not a full Linux kernel, VPS, or root shell. Bootstrapping the runtime and installing npm packages require internet access and compatible browser settings.
+
+Oracle uses a server-side Gemini API integration with bounded conversation history. Live AI requires a configured server credential. Without it, the game supplies clearly labeled offline responses. Oracle requests on Vercel are checked by BotID Basic.
+
+## Application
+
+- [Homepage](/): Interactive game; `help` lists commands and `terminal` opens Browser Lab.
+- [Public source archive](/source-code.json): Project source and setup files. Runtime credentials and local `.env` files are excluded.
+
+## Documentation and source
+
+- [README](https://github.com/SolijonSolayev/cyperpunk-tui-matrix/blob/main/README.md): Installation, commands, browser requirements, deployment, tests, and known limitations.
+- [GitHub repository](https://github.com/SolijonSolayev/cyperpunk-tui-matrix): Source code and version history.
+
+## Crawl scope
+
+The homepage and static public documents describe the application. `/api/` endpoints are runtime services rather than documentation. `robots.txt` controls the declared crawler scope; this file is a descriptive project index, not a replacement for it.
