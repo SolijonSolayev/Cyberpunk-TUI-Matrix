@@ -12,6 +12,10 @@ button:disabled { opacity:.5; cursor:not-allowed; }
 .animate-fadeIn {animation:fadeIn .15s ease-out}
 .crt-terminal { background-color:transparent; background-image:linear-gradient(#14302630 1px,transparent 1px),linear-gradient(90deg,#14302630 1px,transparent 1px); background-size:40px 40px; text-shadow:0 0 9px #22c55e16; }
 .crt-terminal::after {content:'';position:absolute;inset:0;z-index:30;pointer-events:none;background:repeating-linear-gradient(transparent 0px,transparent 3px,#0000000d 4px);}
+.velaris-glow {background:radial-gradient(circle at 24% 18%,#22d3ee24 0,transparent 36%),radial-gradient(circle at 72% 64%,#84cc161c 0,transparent 42%);mix-blend-mode:screen;}
+.velaris-vignette {background:radial-gradient(ellipse at 50% 42%,transparent 0,#0208071f 48%,#010303d9 100%);}
+.velaris-grain {opacity:.1;background-image:repeating-radial-gradient(circle at 30% 20%,#fff 0 .45px,transparent .7px 2.2px);background-size:4px 4px;mix-blend-mode:soft-light;animation:velaris-grain .24s steps(2,end) infinite;}
+@keyframes velaris-grain {0%{transform:translate3d(-1%,1%,0)}25%{transform:translate3d(1%,-1%,0)}50%{transform:translate3d(0,1%,0)}75%{transform:translate3d(-1%,0,0)}100%{transform:translate3d(1%,1%,0)}}
 .terminal-header {z-index:10;flex-shrink:0;background:#0a1013d9;border-bottom:1px solid #2b453b;}
 .header-topline {display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 28px;}
 .brand-lockup {display:flex;align-items:center;gap:12px;flex-shrink:0;}

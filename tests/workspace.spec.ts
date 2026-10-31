@@ -58,6 +58,7 @@ test('browser lab edits, persists, restores, uploads and exports real project fi
   await editor.fill('console.log("saved browser project");\n');
   await editor.press('Control+s');
   await expect(lab.getByRole('button', {name:'Saqlash', exact:true})).toBeVisible();
+  await expect(lab.getByText('Loyiha brauzer xotirasiga saqlandi.', {exact:true})).toBeVisible();
   await lab.getByRole('button', {name:'Browser terminalni yopish'}).click();
   await expect(lab).toBeHidden();
   await page.reload();

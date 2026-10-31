@@ -5,7 +5,7 @@ import type { Plugin } from 'vite';
 // Explicit allowlist: local .env files, credentials, caches and generated output
 // can never be included in the browser's downloadable project.
 export const sourceFiles = [
-  'components.json', 'lib/utils.ts', 'components/ui/elegant-dark-pattern.tsx', 'components/ui/demo.tsx',
+  'components.json', 'lib/utils.ts', 'components/ui/elegant-dark-pattern.tsx', 'components/ui/velaris.tsx', 'components/ui/demo.tsx',
   '.gitignore', '.env.example', '.nvmrc', 'README.md', 'package.json', 'package-lock.json',
   'public/robots.txt', 'public/llms.txt', 'index.html', 'main.tsx', 'style.css', 'App.tsx', 'types.ts', 'constants.ts',
   'tsconfig.json', 'vite.config.ts', 'tailwind.config.cjs', 'postcss.config.cjs',

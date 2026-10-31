@@ -430,7 +430,7 @@ export default function App() {
     addLog(`>> GRID REJIMIDAN: ${msg}`, 'success');
   };
   return (
-    <DarkGradientBg className="app-background h-full min-h-[550px]">
+    <DarkGradientBg active={!isWorkspaceOpen} className="app-background h-full min-h-[550px]">
     <main
       onClick={focusInput}
       className="crt-terminal relative w-full h-full min-h-[550px] flex flex-col bg-[#050805] text-[#22c55e] font-mono select-text overflow-hidden"

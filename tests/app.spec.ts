@@ -24,10 +24,18 @@ test('terminal commands, hack reward, upgrade and matrix toggle', async ({page})
   await cmd('status'); await expect(page.getByText("Mablag': 600", {exact: false})).toBeVisible();
   await cmd('upgrade'); await cmd('status');
   await expect(page.getByText('96 MB / 192 MB', {exact: false})).toBeVisible();
-  await cmd('matrix'); await expect(page.locator('canvas')).toHaveCount(0);
-  await cmd('matrix'); await expect(page.locator('canvas')).toHaveCount(1);
+  await cmd('matrix'); await expect(page.locator('canvas[data-matrix-rain]')).toHaveCount(0);
+  await cmd('matrix'); await expect(page.locator('canvas[data-matrix-rain]')).toHaveCount(1);
   await cmd('cool'); await expect(page.getByText('CPU harorati normallashdi.', {exact: false})).toBeVisible();
   expect(errors).toEqual([]);
+});
+test('Velaris background is decorative and does not block terminal controls', async ({page}) => {
+  await page.goto('/');
+  const velaris = page.locator('canvas[data-velaris]');
+  await expect(velaris).toHaveCount(1);
+  await expect(velaris).toHaveAttribute('aria-hidden', 'true');
+  await expect(velaris).toHaveCSS('pointer-events', 'none');
+  await expect(page.getByLabel('Terminal buyrug‘i')).toBeEditable();
 });
 test('Oracle offline and successful API response are both handled', async ({page}) => {
   await page.goto('/');
@@ -57,7 +65,7 @@ test('downloaded ZIP contains a runnable project, not placeholders or secrets', 
   await page.getByRole('button', {name: 'Barchasini ZIP', exact: false}).click();
   const download = await downloadPromise;
   const zip = await JSZip.loadAsync(await fs.readFile((await download.path())!));
-  for (const file of ['package.json','package-lock.json','App.tsx','server.mjs','scripts/source-archive.ts','tests/app.spec.ts']) {
+  for (const file of ['package.json','package-lock.json','App.tsx','server.mjs','components/ui/velaris.tsx','scripts/source-archive.ts','tests/app.spec.ts']) {
     expect(zip.file(file), file).not.toBeNull();
   }
   expect(await zip.file('App.tsx')!.async('string')).toContain('export default function App()');
@@ -92,7 +100,7 @@ test('CRT terminal supports command history and reports consistent telemetry and
   const input = page.getByRole('textbox', {name: 'Terminal buyrug‘i'});
   const cmd = async (text: string) => {await input.fill(text); await input.press('Enter');};
   await expect(page.getByText('root@cyberdeck:~$', {exact: true})).toBeVisible();
-  await expect(page.locator('canvas')).toBeVisible();
+  await expect(page.locator('canvas[data-matrix-rain]')).toBeVisible();
   expect(await page.locator('.crt-terminal').evaluate(el => getComputedStyle(el, '::after').pointerEvents)).toBe('none');
   await cmd('status'); await cmd('help');
   await input.fill('draft');

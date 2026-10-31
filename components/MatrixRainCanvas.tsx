@@ -59,6 +59,7 @@ export const MatrixRainCanvas: React.FC<{ active: boolean }> = ({ active }) => {
   return (
     <canvas
       ref={canvasRef}
+      data-matrix-rain="true"
       aria-hidden="true"
       className="absolute inset-0 pointer-events-none opacity-[0.12] z-0"
     />

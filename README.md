@@ -143,8 +143,11 @@ komponentlari bilan aralashmasligi va CLI importlari mos bo‘lishi uchun kerak.
 
 `DarkGradientBg` (`components/ui/elegant-dark-pattern.tsx`) terminalni o‘raydi;
 `children` kontentni, `className` qo‘shimcha Tailwind stillarini qabul qiladi.
-Provider yoki state talab qilmaydi. Ko‘k gradientlar, nuqtalar va tekstura CSS bilan
-chiziladi, tashqi rasm yoki ikonka paketi yuklanmaydi. Namuna: `components/ui/demo.tsx`.
+U ichidagi `Velaris` simplex-noise asosida cyan, emerald va violet ranglarni jonli
+aralashtiradi; CSS vignette, glow va film grain qatlamlari chuqurlik beradi. Canvas
+10 FPS va past rezolyutsiyali ichki buffer bilan cheklangan; brauzer uni silliq
+kattalashtiradi. Yashirin tab, Browser Lab yoki reduced-motion holatida to‘xtaydi.
+Tashqi rasm yuklanmaydi. Namuna: `components/ui/demo.tsx`.
 `cn()` yordamchisi `clsx` va `tailwind-merge` orqali klasslarni birlashtiradi.
 
 Keyinchalik shadcn komponenti qo‘shish: `npx shadcn@latest add button`.
