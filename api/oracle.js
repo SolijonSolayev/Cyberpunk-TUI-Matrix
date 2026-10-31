@@ -24,7 +24,8 @@ export function createOracleHandler({verify = checkBotId, generate = generateOra
     }
     const result = await generate(req.body?.question, {
       apiKey: process.env.GEMINI_API_KEY,
-      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+      history: req.body?.history, context: req.body?.context
     });
     return res.status(result.status).json(result.body);
   };

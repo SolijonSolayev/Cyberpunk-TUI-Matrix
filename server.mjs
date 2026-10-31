@@ -11,7 +11,7 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const httpServer = createHttpServer(app);
 app.disable('x-powered-by');
-app.use(express.json({limit: '16kb'}));
+app.use(express.json({limit: '96kb'}));
 // Bound concurrent upstream requests to protect a local developer's API quota.
 let busy = false;
 app.post('/api/oracle', async (req, res) => {
@@ -19,7 +19,8 @@ app.post('/api/oracle', async (req, res) => {
   busy = true;
   try {
     const result = await generateOracle(req.body?.question, {
-      apiKey: process.env.GEMINI_API_KEY, model: process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+      apiKey: process.env.GEMINI_API_KEY, model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+      history: req.body?.history, context: req.body?.context
     });
     res.status(result.status).json(result.body);
   } finally { busy = false; }

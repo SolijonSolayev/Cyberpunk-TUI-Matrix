@@ -15,11 +15,12 @@ export const MatrixRainCanvas: React.FC<{ active: boolean }> = ({ active }) => {
     const alphabet = katakana + latin;
     const fontSize = 14;
     const columns = Math.floor(width / fontSize);
-    const rainDrops: number[] = Array.from({ length: columns }).fill(1) as number[];
+    let rainDrops: number[] = Array.from({ length: columns }).fill(1) as number[];
     const handleResize = () => {
       if (!canvas || !canvas.parentElement) return;
       width = canvas.width = canvas.parentElement.clientWidth;
       height = canvas.height = canvas.parentElement.clientHeight;
+      rainDrops = Array.from({length: Math.floor(width / fontSize)}, () => 1);
     };
     window.addEventListener('resize', handleResize);
     const render = () => {

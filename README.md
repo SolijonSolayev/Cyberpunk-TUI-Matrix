@@ -82,3 +82,11 @@ Vercel buildlarida BotID Basic `POST /api/oracle` so‘rovlarini himoyalaydi: br
 BotID Vercel funksiyasining request konteksti va Vercel OIDC ma’lumotlariga tayanadi. Kalitni qo‘lda yaratish yoki brauzerga joylash kerak emas. Lokal `npm run dev` va oddiy `npm run build` challenge skriptini yuklamaydi; lokal Express serveri Vercel himoyasini taqlid qilmaydi. Production himoya Vercel’da yangi deploydan keyin ishlaydi. Haqiqiy aniqlashni Vercel sayti va BotID kuzatuvlari orqali tekshiring.
 
 `VERCEL=1 npm run build` va `VERCEL=1 CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e` Vercel uchun yig‘ilgan brauzer integratsiyasini soxta challenge bilan sinaydi; bu jonli BotID tasniflash testi emas. Server unit testlari bot bloklanishini, inson so‘rovini, tekshiruv xatosini va Vercel’da development bypass taqiqlanishini tekshiradi.
+
+## Imkoniyatlar tekshiruvi
+
+- **Terminal:** monospace, yashil CRT nur/scanline effekti, `root@cyberdeck:~$`, Matrix Rain. Enter buyruqni bajaradi, yuqori/past strelkalar tarixni ko‘rsatadi, Ctrl+L terminalni tozalaydi. Modal oynalar Escape bilan yopiladi.
+- **Grid:** ichki devorlar va o‘zaro bog‘langan yo‘laklar, 100 qadam, WASD/strelkalar, 4 ta `◆` kesh (+120₢), 3 ta `☠` daemon (-15 qo‘shimcha qadam) va `Ω` chiqish (+300₢). Buyumlar ustma-ust tushmaydi. Tugagan o‘yinda qayta mukofot berilmaydi.
+- **Hacking:** `scan`, `hack <IP>`, HEX bufer jumboqlari, bir martalik kredit mukofotlari; xatoda CPU qiziydi. Yangi nishon yangi bufer bilan ochiladi.
+- **Oracle:** server orqali Gemini bilan suhbat; oxirgi 4 ta muvaffaqiyatli savol-javob va joriy o‘yin telemetriyasi kontekstga kiradi. Flow SDK bu mustaqil Vercel loyihasiga ulanmagan; Gemini bevosita serverdan chaqiriladi. Jonli javoblar uchun serverda `GEMINI_API_KEY` zarur. Kalitsiz oflayn kesh ishlaydi, oflayn javoblar Gemini suhbat tarixiga qo‘shilmaydi.
+- **Telemetriya:** `status`, `cool` (kamida 22°C), `upgrade` (300₢, +64 MB maksimal RAM, +32 MB RAM, +1 daraja). Reputatsiya 100 bilan chegaralanadi; har 20 ball chegarasidan o‘tilganda daraja oshadi.

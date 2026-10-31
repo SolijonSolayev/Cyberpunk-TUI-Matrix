@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HackNode } from '../types';
 interface HackingPuzzleProps {
   node: HackNode;
@@ -9,6 +9,10 @@ const HEX_POOL = ['0xAA', '0x1F', '0x7C', '0xDE', '0xAD', '0xBE', '0xEF', '0xFF'
 export const HackingPuzzle: React.FC<HackingPuzzleProps> = ({ node, onSuccess, onFail }) => {
   const [selectedHexes, setSelectedHexes] = useState<string[]>([]);
   const [statusMsg, setStatusMsg] = useState<string>('Nishon buferiga kerakli ketma-ketlikni inyeksiya qiling.');
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearTimer = () => { if (timer.current) clearTimeout(timer.current); timer.current = null; };
+  useEffect(() => clearTimer, []);
+  const cancel = () => { clearTimer(); onFail(); };
   const handleSelect = (hex: string) => {
     if (selectedHexes.length >= node.codePattern.length) return;
     const nextList = [...selectedHexes, hex];
@@ -18,14 +22,15 @@ export const HackingPuzzle: React.FC<HackingPuzzleProps> = ({ node, onSuccess, o
       const isCorrect = nextList.every((val, index) => val === node.codePattern[index]);
       if (isCorrect) {
         setStatusMsg('MUVAFFAQIYAT! Xavfsizlik shifrlari buzildi. Pul o\'tkazilmoqda...');
-        setTimeout(() => onSuccess(node.reward), 900);
+        timer.current = setTimeout(() => onSuccess(node.reward), 900);
       } else {
         setStatusMsg('XATOLIK! Shifr mos kelmadi. Tizim bloklandi!');
-        setTimeout(onFail, 1200);
+        timer.current = setTimeout(onFail, 1200);
       }
     }
   };
   const handleReset = () => {
+    clearTimer();
     setSelectedHexes([]);
     setStatusMsg('Kesh tozalandi. Qaytadan urinib ko\'ring.');
   };
@@ -93,7 +98,7 @@ export const HackingPuzzle: React.FC<HackingPuzzleProps> = ({ node, onSuccess, o
             Tozalash
           </button>
           <button
-            onClick={onFail}
+            onClick={cancel}
             className="px-2.5 py-1 bg-red-950/60 hover:bg-red-900 border border-red-700 text-red-300 rounded"
           >
             Bekor qilish

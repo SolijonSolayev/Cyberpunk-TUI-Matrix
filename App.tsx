@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { askOracle } from './lib/oracle';
+import { askOracle, type OracleMessage } from './lib/oracle';
 import { PlayerStats, TerminalLog, HackNode } from './types';
 import { ASCII_HEADER, INITIAL_NODES } from './constants';
 import { TerminalHeader } from './components/TerminalHeader';
@@ -15,6 +15,10 @@ const OFFLINE_ORACLE_RESPONSES = [
   '>> [KESH-JAVOB]: Neo-Toshkent sun\'iy intellekt arxivi: Texnologiya insoniyat ongini kengaytirishi mumkin, ammo qalb kodini hech qanday kvant mashinasi o\'zgartira olmaydi.',
   '>> [KESH-JAVOB]: Aloqa uzilishi fonida lokal AI yadro javobi: Siz qidirayotgan haqiqat tarmoqning eng chuqur shifrlangan qatlamlarida yashiringan.'
 ];
+function awardReputation(stats: PlayerStats, points: number): PlayerStats {
+  const reputation = Math.min(100, stats.reputation + points);
+  return {...stats, reputation, level: stats.level + Math.floor(reputation / 20) - Math.floor(stats.reputation / 20)};
+}
 export default function App() {
   const [stats, setStats] = useState<PlayerStats>({
     handle: 'CYBER_GHOST',
@@ -52,6 +56,23 @@ export default function App() {
   const [isAiThinking, setIsAiThinking] = useState(false);
   const logsEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const commandHistory = useRef<string[]>([]);
+  const historyIndex = useRef(0);
+  const historyDraft = useRef('');
+  const oracleHistory = useRef<OracleMessage[]>([]);
+  const oraclePending = useRef(false);
+  useEffect(() => {
+    if (!isGridActive && !isHelpOpen && !isDownloadOpen) inputRef.current?.focus();
+  }, [isGridActive, isHelpOpen, isDownloadOpen]);
+  useEffect(() => {
+    const closeOverlay = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (isDownloadOpen) setIsDownloadOpen(false);
+      else if (isHelpOpen) setIsHelpOpen(false);
+    };
+    window.addEventListener('keydown', closeOverlay);
+    return () => window.removeEventListener('keydown', closeOverlay);
+  }, [isHelpOpen, isDownloadOpen]);
   // Global unhandled promise rejection hodisalarini ushlash
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
@@ -69,7 +90,9 @@ export default function App() {
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs, activeHackNode, isGridActive]);
   // Terminalni fokusda saqlash
-  const focusInput = () => {
+  const focusInput = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (isGridActive || isHelpOpen || isDownloadOpen ||
+        (event.target as HTMLElement).closest('button, input, a')) return;
     inputRef.current?.focus();
   };
   const addLog = (text: string, type: TerminalLog['type'] = 'output') => {
@@ -88,14 +111,14 @@ export default function App() {
   const executeCommand = async (rawCmd: string) => {
     const trimmed = rawCmd.trim();
     if (!trimmed) return;
+    commandHistory.current = [...commandHistory.current, trimmed].slice(-100);
+    historyIndex.current = commandHistory.current.length;
+    historyDraft.current = '';
     addLog(`$ ${trimmed}`, 'input');
-    const [command, ...args] = trimmed.split(' ');
+    const [command, ...args] = trimmed.split(/\s+/);
     const cmd = command.toLowerCase();
-    // CPU qizishi
-    setStats((s) => ({
-      ...s,
-      cpuHeat: Math.min(100, s.cpuHeat + 3)
-    }));
+    const cpuHeat = cmd === 'cool' ? Math.max(22, stats.cpuHeat - 25) : Math.min(100, stats.cpuHeat + 3);
+    setStats(s => ({...s, cpuHeat}));
     switch (cmd) {
       case 'download': {
         setIsDownloadOpen(true);
@@ -129,10 +152,6 @@ export default function App() {
         break;
       }
       case 'cool': {
-        setStats((s) => ({
-          ...s,
-          cpuHeat: Math.max(22, s.cpuHeat - 25)
-        }));
         addLog('>> Kriogen sovutgich ishga tushirildi. CPU harorati normallashdi.', 'success');
         break;
       }
@@ -143,7 +162,7 @@ export default function App() {
           `Daraja: ${stats.level}\n` +
           `Mablag': ${stats.credits} ₢ (Kiber-kripto)\n` +
           `Operativ xotira (RAM): ${stats.ram} MB / ${stats.maxRam} MB\n` +
-          `CPU harorati: ${stats.cpuHeat}°C\n` +
+          `CPU harorati: ${cpuHeat}°C\n` +
           `Dastur versiyasi: ${stats.firmwareVersion}\n` +
           `Reputatsiya darajasi: ${stats.reputation} / 100\n` +
           `Jihozlar: ${stats.cyberDecks.join(', ')}`,
@@ -204,17 +223,24 @@ export default function App() {
         break;
       }
       case 'oracle': {
-        if (isAiThinking) { addLog('AI javobini kuting.', 'warning'); return; }
+        if (oraclePending.current) { addLog('AI javobini kuting.', 'warning'); return; }
         const question = args.join(' ');
         if (!question) {
           addLog('XATOLIK: Savol kiritilmadi! Masalan: oracle kiber-urush nima?', 'error');
           return;
         }
+        if (question.length > 2000) { addLog('Savol 2000 belgidan oshmasin.', 'error'); return; }
+        oraclePending.current = true;
         setIsAiThinking(true);
         addLog(`>> Kiber-AI yadrosiga so'rov yuborilmoqda: "${question}"...`, 'system');
         let answered = false;
         try {
-          const text = await askOracle(question);
+          const text = await askOracle(question, oracleHistory.current, {
+            handle: stats.handle, level: stats.level, credits: stats.credits,
+            ram: stats.ram, maxRam: stats.maxRam, cpuHeat, reputation: stats.reputation
+          });
+          oracleHistory.current = [...oracleHistory.current,
+            {role: 'user' as const, text: question}, {role: 'model' as const, text: text.slice(0, 2000)}].slice(-8);
           addLog(`[AI_ORACLE]: ${text}`, 'ai');
           answered = true;
         } catch (outerErr) {
@@ -228,6 +254,7 @@ export default function App() {
             'warning'
           );
         }
+        oraclePending.current = false;
         setIsAiThinking(false);
         break;
       }
@@ -237,6 +264,17 @@ export default function App() {
     }
   };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex.current === commandHistory.current.length) historyDraft.current = inputVal;
+      historyIndex.current = Math.max(0, Math.min(commandHistory.current.length,
+        historyIndex.current + (e.key === 'ArrowUp' ? -1 : 1)));
+      setInputVal(commandHistory.current[historyIndex.current] ?? historyDraft.current);
+      return;
+    }
+    if (e.ctrlKey && e.key.toLowerCase() === 'l') {
+      e.preventDefault(); setLogs([]); return;
+    }
     if (e.key === 'Enter') {
       const val = inputVal;
       setInputVal('');
@@ -246,10 +284,8 @@ export default function App() {
   const handleHackSuccess = (credits: number) => {
     if (!activeHackNode) return;
     setStats((s) => ({
-      ...s,
-      credits: s.credits + credits,
-      reputation: s.reputation + 10,
-      level: s.level + (s.reputation % 20 === 0 ? 1 : 0)
+      ...awardReputation(s, 10),
+      credits: s.credits + credits
     }));
     setNodes((prev) =>
       prev.map((n) => (n.id === activeHackNode.id ? { ...n, solved: true } : n))
@@ -267,16 +303,15 @@ export default function App() {
   };
   const handleGridReward = (reward: number, msg: string) => {
     setStats((s) => ({
-      ...s,
-      credits: s.credits + reward,
-      reputation: s.reputation + 5
+      ...awardReputation(s, 5),
+      credits: s.credits + reward
     }));
     addLog(`>> GRID REJIMIDAN: ${msg}`, 'success');
   };
   return (
     <div
       onClick={focusInput}
-      className="relative w-full h-full min-h-[550px] flex flex-col bg-[#050805] text-[#22c55e] font-mono select-text overflow-hidden"
+      className="crt-terminal relative w-full h-full min-h-[550px] flex flex-col bg-[#050805] text-[#22c55e] font-mono select-text overflow-hidden"
     >
       {/* Orqa fondagi Matritsa */}
       <MatrixRainCanvas active={isMatrixRain} />
@@ -346,7 +381,7 @@ export default function App() {
           if (log.type === 'ai') colorClass = 'text-cyan-300 bg-cyan-950/40 border-l-2 border-cyan-400 p-2 rounded block shadow-[0_0_10px_rgba(6,182,212,0.15)]';
           if (log.type === 'system') colorClass = 'text-zinc-400';
           return (
-            <div key={log.id} className="whitespace-pre-wrap leading-relaxed break-words">
+            <div key={log.id} className={log.id === 'log-0' ? 'whitespace-pre leading-relaxed overflow-x-auto' : 'whitespace-pre-wrap leading-relaxed break-words'}>
               <span className="text-zinc-600 text-[10px] mr-2 select-none">
                 [{log.timestamp}]
               </span>
@@ -357,6 +392,7 @@ export default function App() {
         {/* Interaktiv Mini-o'yin: Hacking Hex Puzzle */}
         {activeHackNode && (
           <HackingPuzzle
+            key={activeHackNode.id}
             node={activeHackNode}
             onSuccess={handleHackSuccess}
             onFail={handleHackFail}
@@ -365,6 +401,7 @@ export default function App() {
         {/* Interaktiv Mini-o'yin: 2D Grid Rogue */}
         {isGridActive && (
           <GridMiniGame
+            paused={isHelpOpen || isDownloadOpen}
             onCollectReward={handleGridReward}
             onExit={() => {
               setIsGridActive(false);
@@ -388,14 +425,17 @@ export default function App() {
         <input
           ref={inputRef}
           type="text"
+          aria-label="Terminal buyrug‘i"
+          disabled={isGridActive}
           value={inputVal}
           onChange={(e) => setInputVal(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Buyruq yozing (masalan: download, help, scan, grid, oracle <savol>)..."
+          placeholder={isGridActive ? 'Grid: WASD / strelkalar. ESC bilan chiqing.' : 'Buyruq yozing: help, scan, grid, oracle <savol>...'}
           className="flex-1 bg-transparent text-emerald-300 outline-none font-mono text-xs md:text-sm placeholder-zinc-700 caret-emerald-400"
           autoFocus
         />
         <button
+          disabled={isGridActive}
           onClick={() => {
             const val = inputVal;
             setInputVal('');

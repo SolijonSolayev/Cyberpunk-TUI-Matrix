@@ -4,3 +4,17 @@
 html, body, #root { height: 100%; margin: 0; background: #050805; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .animate-fadeIn { animation: fadeIn .15s ease-out; }
+
+/* Green phosphor glow and subtle CRT scanlines, scoped to the terminal. */
+.crt-terminal { text-shadow: 0 0 6px rgb(34 197 94 / 22%); }
+.crt-terminal::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgb(0 0 0 / 16%) 3px, transparent 4px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .crt-terminal *, .crt-terminal { scroll-behavior: auto !important; animation: none !important; }
+}

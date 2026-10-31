@@ -1,89 +1,31 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { RogueEntity } from '../types';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {createGrid, moveGrid, isGridWall, GRID_WIDTH, GRID_HEIGHT} from '../lib/grid';
 interface GridMiniGameProps {
   onCollectReward: (credits: number, msg: string) => void;
   onExit: () => void;
+  paused?: boolean;
 }
-const GRID_WIDTH = 28;
-const GRID_HEIGHT = 12;
-export const GridMiniGame: React.FC<GridMiniGameProps> = ({ onCollectReward, onExit }) => {
-  const [player, setPlayer] = useState<{ x: number; y: number }>({ x: 2, y: 2 });
-  const [entities, setEntities] = useState<RogueEntity[]>([]);
-  const [message, setMessage] = useState<string>('Tugmalar: W, A, S, D yoki Yo\'nalish strelkalari bilan harakatlaning.');
-  const [stepsLeft, setStepsLeft] = useState<number>(45);
-  // Xarita yaratish
+export const GridMiniGame: React.FC<GridMiniGameProps> = ({ onCollectReward, onExit, paused = false }) => {
+  const [game, setGame] = useState(createGrid);
+  const gameRef = useRef(game);
+  const {player, entities, message, stepsLeft} = game;
+  const movePlayer = useCallback((dx: number, dy: number) => {
+    if (paused || gameRef.current.outcome !== 'active') return;
+    const result = moveGrid(gameRef.current, dx, dy);
+    gameRef.current = result.game;
+    setGame(result.game);
+    // Rewards occur once, outside React state updater callbacks.
+    if (result.reward) onCollectReward(result.reward, result.event);
+    if (result.game.outcome === 'escaped') onExit();
+  }, [onCollectReward, onExit, paused]);
   useEffect(() => {
-    const initialEntities: RogueEntity[] = [];
-    // Keshlar (Data Caches)
-    for (let i = 0; i < 4; i++) {
-      initialEntities.push({
-        x: Math.floor(Math.random() * (GRID_WIDTH - 4)) + 2,
-        y: Math.floor(Math.random() * (GRID_HEIGHT - 4)) + 2,
-        symbol: '◆',
-        color: 'text-amber-400 font-bold animate-pulse',
-        name: 'Kripto Kesh',
-        type: 'cache'
-      });
-    }
-    // Xavfli daemons
-    for (let i = 0; i < 3; i++) {
-      initialEntities.push({
-        x: Math.floor(Math.random() * (GRID_WIDTH - 6)) + 3,
-        y: Math.floor(Math.random() * (GRID_HEIGHT - 4)) + 2,
-        symbol: '☠',
-        color: 'text-red-500 font-bold',
-        name: 'Xavfsizlik Daemoni',
-        type: 'daemon'
-      });
-    }
-    // Chiqish portali
-    initialEntities.push({
-      x: GRID_WIDTH - 3,
-      y: GRID_HEIGHT - 3,
-      symbol: 'Ω',
-      color: 'text-cyan-400 font-bold',
-      name: 'Extractor Portal',
-      type: 'portal'
-    });
-    setEntities(initialEntities);
-  }, []);
-  const movePlayer = useCallback(
-    (dx: number, dy: number) => {
-      setPlayer((prev) => {
-        const nx = Math.max(1, Math.min(GRID_WIDTH - 2, prev.x + dx));
-        const ny = Math.max(1, Math.min(GRID_HEIGHT - 2, prev.y + dy));
-        // Tekshirish
-        const hitIndex = entities.findIndex((e) => e.x === nx && e.y === ny);
-        if (hitIndex !== -1) {
-          const item = entities[hitIndex];
-          if (item.type === 'cache') {
-            const reward = 120;
-            onCollectReward(reward, `Kripto-kesh olindi! +${reward} ₢`);
-            setMessage(`Topilma! Kripto-kesh buzildi: +${reward} ₢`);
-            setEntities((list) => list.filter((_, idx) => idx !== hitIndex));
-          } else if (item.type === 'daemon') {
-            setMessage('Diqqat! Daemon hujum qildi: -15 Qadam yo\'qotildi!');
-            setStepsLeft((s) => Math.max(0, s - 15));
-          } else if (item.type === 'portal') {
-            onCollectReward(300, 'Tizimdan muvaffaqiyatli chiqildi! Bonus +300 ₢');
-            onExit();
-          }
-        }
-        setStepsLeft((s) => {
-          if (s <= 1) {
-            setMessage('Vaqt tugadi! Tizim aloqani uzdi.');
-            setTimeout(onExit, 1200);
-            return 0;
-          }
-          return s - 1;
-        });
-        return { x: nx, y: ny };
-      });
-    },
-    [entities, onCollectReward, onExit]
-  );
+    if (game.outcome !== 'expired') return;
+    const timer = window.setTimeout(onExit, 1200);
+    return () => window.clearTimeout(timer);
+  }, [game.outcome, onExit]);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (paused) return;
       if (['ArrowUp', 'KeyW'].includes(e.code)) {
         e.preventDefault();
         movePlayer(0, -1);
@@ -102,41 +44,41 @@ export const GridMiniGame: React.FC<GridMiniGameProps> = ({ onCollectReward, onE
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [movePlayer, onExit]);
+  }, [movePlayer, onExit, paused]);
   // Griddagi xonalarni chizish
   const rows = [];
   for (let y = 0; y < GRID_HEIGHT; y++) {
     const cols = [];
     for (let x = 0; x < GRID_WIDTH; x++) {
-      const isWall = x === 0 || x === GRID_WIDTH - 1 || y === 0 || y === GRID_HEIGHT - 1;
+      const isWall = isGridWall(x, y);
       const isPlayer = player.x === x && player.y === y;
       const entity = entities.find((e) => e.x === x && e.y === y);
       if (isPlayer) {
         cols.push(
-          <span key={x} className="text-emerald-300 font-extrabold bg-emerald-950/80 px-0.5 rounded shadow-[0_0_8px_#34d399]">
+          <span key={x} className="inline-block w-[1.2em] text-center text-emerald-300 font-extrabold bg-emerald-950/80 rounded shadow-[0_0_8px_#34d399]">
             @
           </span>
         );
       } else if (entity) {
         cols.push(
-          <span key={x} className={`px-0.5 ${entity.color}`}>
+          <span key={x} className={`inline-block w-[1.2em] text-center ${entity.color}`}>
             {entity.symbol}
           </span>
         );
       } else if (isWall) {
-        cols.push(<span key={x} className="text-zinc-600">#</span>);
+        cols.push(<span key={x} className="inline-block w-[1.2em] text-center text-zinc-600">#</span>);
       } else {
-        cols.push(<span key={x} className="text-zinc-800">·</span>);
+        cols.push(<span key={x} className="inline-block w-[1.2em] text-center text-zinc-800">·</span>);
       }
     }
     rows.push(
-      <div key={y} className="leading-tight tracking-widest">
+      <div key={y} data-grid-row={y} className="leading-tight tracking-widest whitespace-nowrap">
         {cols}
       </div>
     );
   }
   return (
-    <div className="border border-emerald-500/50 bg-black/95 rounded p-4 font-mono text-xs my-2 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+    <div aria-label="Kiber-labirint" role="region" className="border border-emerald-500/50 bg-black/95 rounded p-4 font-mono text-xs my-2 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
       <div className="flex items-center justify-between border-b border-emerald-800/60 pb-2 mb-3">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-[16px] text-cyan-400">grid_view</span>
