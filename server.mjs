@@ -11,6 +11,11 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const httpServer = createHttpServer(app);
 app.disable('x-powered-by');
+app.use((_req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+  next();
+});
 app.use(express.json({limit: '96kb'}));
 // Bound concurrent upstream requests to protect a local developer's API quota.
 let busy = false;

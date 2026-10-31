@@ -106,3 +106,28 @@ BotID Vercel funksiyasining request konteksti va Vercel OIDC ma’lumotlariga ta
 Noto‘g‘ri yoki allaqachon buzilgan nishon, tayyor EMP, kam mablag‘/RAM holatida qurol sarflanmaydi. Bular o‘yin mexanikalari; tashqi tarmoqqa so‘rov yoki hujum yubormaydi.
 
 Audio standart holatda o‘chiq va sahifa yangilanganda yana o‘chadi. `sound on` yoki yuqoridagi SOUND tugmasi bilan yoqing; `sound off` darhol o‘chiradi. `sound volume 0`–`sound volume 100` balandlikni sozlaydi (standart 20%), `sound test` namunani ijro etadi. Web Audio API klaviatura, buyruq, skan, mukofot, ogohlantirish va xato tovushlarini brauzerning o‘zida sintez qiladi; audio fayllar/CDN/paketlar kerak emas. Audio qo‘llanmasa o‘yin ovozsiz ishlayveradi.
+
+## Kuchli brauzer terminali — Browser Lab
+
+`terminal` (yoki `lab`) buyrug‘i va yuqoridagi **BROWSER LAB** tugmasi Node.js/npm terminali, loyiha fayllari va kod muharririni ochadi. Bu o‘yin buyruqlarining simulyatsiyasi emas: **Ishga tushirish** WebContainer ichida haqiqiy Node jarayonlari va `jsh` shell’ini ochadi. VPS talab qilinmaydi; bu to‘liq Linux yadrosi/root shell emas. `apt`, Docker va native Linux dasturlari qo‘llanmaydi.
+
+Imkoniyatlar:
+
+- `ls`, `pwd`, `cat`, `mkdir`, `rm`, `node`, `npm`, `npx`; interaktiv kiritish, Ctrl+C va terminal o‘lchamini moslash.
+- Papka yo‘li bilan fayl yaratish, tahrirlash, Ctrl+S bilan saqlash, matn fayli yuklash va o‘chirish.
+- IndexedDB’da shu brauzer uchun lokal loyiha nusxasi: 200 ta matn fayli, har biri 1 MB, jami 8 MB. Terminalda o‘zgargan fayllarni **Yangilash** bilan muharrir/lokal nusxaga oling. `node_modules`, `.git` va build/kesh kataloglari lokal nusxaga kirmaydi; binar yoki katta fayllar haqida xabar beriladi.
+- **Loyiha ZIP**: runtime ishlayotgan bo‘lsa loyiha fayllari, aks holda muharrirdagi saqlangan matn loyihasi eksport qilinadi; npm dependency/keshlar kiritilmaydi.
+- `npm run start` demo HTTP serverini ochadi; **Preview** tabida sayt ko‘rinadi. `index.html` ni tahrirlab saqlash preview’ni yangilaydi.
+- **O‘yinga qaytish** runtime’ni fonda saqlaydi. **To‘xtatish** jarayonlarni va vaqtinchalik filesystemni o‘chiradi. Avval kerakli fayllarni Yangilash yoki ZIP bilan saqlang.
+
+Chrome yoki Edge’ning yangi versiyasi, HTTPS (lokalda localhost ham mumkin) va SharedArrayBuffer kerak. COOP/COEP headerlari Express, Vite va `vercel.json` uchun sozlangan. WebContainer boshlang‘ich runtime va npm paketlarini yuklashda internet, StackBlitz xizmatlari va hosted proxy’lardan foydalanadi; keyingi Node hisoblashlari brauzerda bajariladi. Tarmoq yoki uchinchi tomon resurslarini bloklash runtime yuklanishiga to‘sqinlik qilishi mumkin. [WebContainer hujjatlari](https://webcontainers.io), [StackBlitz xizmat shartlari](https://stackblitz.com/terms-of-service).
+
+Boshlang‘ich loyiha tayyor:
+
+```sh
+node src/index.js
+npm test
+npm run start
+```
+
+Muharrir, IndexedDB, ZIP va Node starter testlari runtime xizmatiga tayanmasdan tekshiriladi. Haqiqiy WebContainer boot va npm internet ulanishi alohida brauzer tekshiruvini talab qiladi; uni oddiy o‘yin testlari o‘tganidan kelib chiqib tasdiqlamang.

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { askOracle, type OracleMessage } from './lib/oracle';
 import { PlayerStats, TerminalLog, HackNode } from './types';
 import { ASCII_HEADER, INITIAL_NODES, HELP_COMMANDS } from './constants';
@@ -17,6 +17,7 @@ const OFFLINE_ORACLE_RESPONSES = [
   '>> [KESH-JAVOB]: Neo-Toshkent sun\'iy intellekt arxivi: Texnologiya insoniyat ongini kengaytirishi mumkin, ammo qalb kodini hech qanday kvant mashinasi o\'zgartira olmaydi.',
   '>> [KESH-JAVOB]: Aloqa uzilishi fonida lokal AI yadro javobi: Siz qidirayotgan haqiqat tarmoqning eng chuqur shifrlangan qatlamlarida yashiringan.'
 ];
+const BrowserWorkspace = lazy(() => import('./components/BrowserWorkspace'));
 function awardReputation(stats: PlayerStats, points: number): PlayerStats {
   const reputation = Math.min(100, stats.reputation + points);
   return {...stats, reputation, level: stats.level + Math.floor(reputation / 20) - Math.floor(stats.reputation / 20)};
@@ -49,6 +50,9 @@ export default function App() {
     }
   ]);
   const [inputVal, setInputVal] = useState('');
+  const [workspaceOpened, setWorkspaceOpened] = useState(false);
+  const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false);
+  const openWorkspace = () => {setWorkspaceOpened(true); setIsWorkspaceOpen(true);};
   const [inventory, setInventory] = useState({...INITIAL_INVENTORY});
   const [empArmed, setEmpArmed] = useState(false);
   const [gridEmp, setGridEmp] = useState(false);
@@ -75,17 +79,17 @@ export default function App() {
   const oracleHistory = useRef<OracleMessage[]>([]);
   const oraclePending = useRef(false);
   useEffect(() => {
-    if (!isGridActive && !isHelpOpen && !isDownloadOpen) inputRef.current?.focus();
-  }, [isGridActive, isHelpOpen, isDownloadOpen]);
+    if (!isGridActive && !isHelpOpen && !isDownloadOpen && !isWorkspaceOpen) inputRef.current?.focus();
+  }, [isGridActive, isHelpOpen, isDownloadOpen, isWorkspaceOpen]);
   useEffect(() => {
     const closeOverlay = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
+      if (isWorkspaceOpen || event.key !== 'Escape') return;
       if (isDownloadOpen) setIsDownloadOpen(false);
       else if (isHelpOpen) setIsHelpOpen(false);
     };
     window.addEventListener('keydown', closeOverlay);
     return () => window.removeEventListener('keydown', closeOverlay);
-  }, [isHelpOpen, isDownloadOpen]);
+  }, [isHelpOpen, isDownloadOpen, isWorkspaceOpen]);
   // Global unhandled promise rejection hodisalarini ushlash
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
@@ -104,7 +108,7 @@ export default function App() {
   }, [logs, activeHackNode, isGridActive]);
   // Terminalni fokusda saqlash
   const focusInput = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (isGridActive || isHelpOpen || isDownloadOpen ||
+    if (isWorkspaceOpen || isGridActive || isHelpOpen || isDownloadOpen ||
         (event.target as HTMLElement).closest('button, input, a')) return;
     inputRef.current?.focus();
   };
@@ -154,6 +158,11 @@ export default function App() {
       }
       case 'help': {
         addLog('Mavjud buyruqlar:\n' + HELP_COMMANDS.map(item => `• ${item.cmd.padEnd(20)} - ${item.desc}`).join('\n'), 'system');
+        break;
+      }
+      case 'terminal':
+      case 'lab': {
+        openWorkspace();
         break;
       }
       case 'whoami': {
@@ -427,6 +436,7 @@ export default function App() {
       <MatrixRainCanvas active={isMatrixRain} />
       {/* Yuqori TUI Status bar */}
       <TerminalHeader
+        onOpenWorkspace={openWorkspace}
         stats={stats}
         soundEnabled={soundEnabled}
         onToggleSound={() => { void setSound(!soundEnabled); }}
@@ -528,7 +538,7 @@ export default function App() {
           <GridMiniGame
             emp={gridEmp}
             onDanger={() => audio.play('error')}
-            paused={isHelpOpen || isDownloadOpen}
+            paused={isHelpOpen || isDownloadOpen || isWorkspaceOpen}
             onCollectReward={handleGridReward}
             onExit={() => {
               setIsGridActive(false);
@@ -553,7 +563,7 @@ export default function App() {
           ref={inputRef}
           type="text"
           aria-label="Terminal buyrug‘i"
-          disabled={isGridActive}
+          disabled={isGridActive || isWorkspaceOpen}
           value={inputVal}
           onChange={(e) => { setInputVal(e.target.value); audio.play('key'); }}
           onKeyDown={handleKeyDown}
@@ -562,7 +572,7 @@ export default function App() {
           autoFocus
         />
         <button
-          disabled={isGridActive}
+          disabled={isGridActive || isWorkspaceOpen}
           onClick={() => {
             const val = inputVal;
             setInputVal('');
@@ -585,6 +595,9 @@ export default function App() {
         isOpen={isDownloadOpen}
         onClose={() => setIsDownloadOpen(false)}
       />
+      {workspaceOpened && <Suspense fallback={<div className="fixed inset-0 z-[60] bg-black text-emerald-300 p-8">Brauzer terminali yuklanmoqda…</div>}>
+        <BrowserWorkspace open={isWorkspaceOpen} onClose={() => setIsWorkspaceOpen(false)}/>
+      </Suspense>}
     </div>
   );
 }

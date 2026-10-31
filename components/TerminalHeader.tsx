@@ -2,6 +2,7 @@ import React from 'react';
 import { PlayerStats } from '../types';
 interface TerminalHeaderProps {
   stats: PlayerStats;
+  onOpenWorkspace: () => void;
   isMatrixRain: boolean;
   soundEnabled: boolean;
   onToggleSound: () => void;
@@ -11,6 +12,7 @@ interface TerminalHeaderProps {
 }
 export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
   stats,
+  onOpenWorkspace,
   isMatrixRain,
   soundEnabled,
   onToggleSound,
@@ -44,6 +46,9 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
         </span>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
+        <button onClick={onOpenWorkspace} className="px-2 py-1 rounded text-[11px] border border-cyan-700 text-cyan-300 hover:bg-cyan-950 flex items-center gap-1">
+          <span className="material-symbols-outlined text-[14px]">terminal</span>BROWSER LAB
+        </button>
         <button
           onClick={onToggleSound}
           aria-label="Audio effektlar"

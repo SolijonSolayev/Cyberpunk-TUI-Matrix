@@ -18,6 +18,7 @@ export const HELP_COMMANDS = [
   { cmd: 'cool', desc: 'CPU qizishini pasaytirish va keshni tozalash' },
   { cmd: 'upgrade', desc: 'Credits evaziga RAM va dasturiy ta\'minotni kuchaytirish' },
   { cmd: 'matrix', desc: 'Matritsa yomg\'iri vizual rejimini yoqish/o\'chirish' },
+  { cmd: 'terminal', desc: 'Haqiqiy Node.js/npm brauzer terminali va fayl muharriri' },
   { cmd: 'whoami', desc: 'Agent identifikatori, darajasi va reputatsiyasi' },
   { cmd: 'history', desc: 'Oxirgi 20 ta terminal buyrug‘i' },
   { cmd: 'uptime', desc: 'Joriy sessiya davomiyligi' },
