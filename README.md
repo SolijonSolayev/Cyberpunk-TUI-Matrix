@@ -13,7 +13,7 @@ npm ci
 npm run dev
 ```
 
-Brauzerda `http://127.0.0.1:5173` ni oching. Barcha paketlar va ikonka shriftlari npm orqali o‘rnatiladi; Flow sandbox yoki tashqi CDN kerak emas.
+Brauzerda `http://127.0.0.1:5173` ni oching. Barcha paketlar npm orqali o‘rnatiladi; ikonkalar yengil lokal SVG; Flow sandbox yoki tashqi CDN kerak emas.
 
 Production:
 

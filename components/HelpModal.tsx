@@ -1,3 +1,4 @@
+import {Icon} from './Icon';
 import React from 'react';
 import { HELP_COMMANDS } from '../constants';
 interface HelpModalProps {
@@ -12,7 +13,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, onSelectC
       <div className="relative w-full max-w-2xl border-2 border-emerald-500/70 bg-zinc-950/95 p-5 font-mono text-xs text-emerald-400 shadow-[0_0_35px_rgba(16,185,129,0.3)] rounded-lg">
         <div className="flex items-center justify-between border-b border-emerald-800 pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-emerald-400 text-[18px]">terminal</span>
+            <Icon name="terminal" className="text-emerald-400 text-[18px]"/>
             <span className="font-bold text-sm tracking-wider text-emerald-200">
               TUI TERMINAL BUYRUQLARI REESTRI
             </span>
@@ -21,7 +22,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, onSelectC
             onClick={onClose}
             className="text-zinc-400 hover:text-emerald-400 p-1 rounded hover:bg-emerald-950"
           >
-            <span className="material-symbols-outlined text-[18px]">close</span>
+            <Icon name="close" className="text-[18px]"/>
           </button>
         </div>
         <p className="text-zinc-400 mb-4 leading-relaxed">

@@ -1,5 +1,6 @@
 import React from 'react';
-import { PlayerStats } from '../types';
+import type {PlayerStats} from '../types';
+import {Icon} from './Icon';
 interface TerminalHeaderProps {
   stats: PlayerStats;
   onOpenWorkspace: () => void;
@@ -10,82 +11,29 @@ interface TerminalHeaderProps {
   onOpenHelp: () => void;
   onOpenDownload: () => void;
 }
-export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
-  stats,
-  onOpenWorkspace,
-  isMatrixRain,
-  soundEnabled,
-  onToggleSound,
-  onToggleMatrix,
-  onOpenHelp,
-  onOpenDownload
-}) => {
-  const heatColor = stats.cpuHeat > 75 ? 'text-red-400 font-bold animate-pulse' : stats.cpuHeat > 45 ? 'text-amber-400' : 'text-emerald-400';
-  return (
-    <div className="border-b-2 border-emerald-500/40 bg-black/90 px-4 py-2 text-xs font-mono text-emerald-400 select-none flex flex-wrap items-center justify-between gap-3 shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
-      <div className="flex items-center gap-4 flex-wrap">
-        <span className="flex items-center gap-1.5 text-emerald-300">
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-          <span className="font-bold tracking-wider">[SYS_ACTIVE]</span>
-        </span>
-        <span className="text-zinc-500">|</span>
-        <span>
-          USER: <strong className="text-emerald-200">@{stats.handle}</strong> (LVL {stats.level})
-        </span>
-        <span className="text-zinc-500">|</span>
-        <span>
-          CREDITS: <strong className="text-yellow-400">{stats.credits} ₢</strong>
-        </span>
-        <span className="text-zinc-500">|</span>
-        <span>
-          RAM: <strong className="text-cyan-300">{stats.ram}/{stats.maxRam} MB</strong>
-        </span>
-        <span className="text-zinc-500">|</span>
-        <span>
-          CPU TEMP: <strong className={heatColor}>{stats.cpuHeat}°C</strong>
-        </span>
+export const TerminalHeader: React.FC<TerminalHeaderProps> = ({stats, onOpenWorkspace, isMatrixRain, soundEnabled, onToggleSound, onToggleMatrix, onOpenHelp, onOpenDownload}) => {
+  const heatClass = stats.cpuHeat > 75 ? 'is-hot' : stats.cpuHeat > 45 ? 'is-warm' : '';
+  return <header className="terminal-header">
+    <div className="header-topline">
+      <div className="brand-lockup">
+        <div className="brand-mark" aria-hidden="true"><Icon name="terminal"/></div>
+        <div><div className="brand-name">CYBER<span>NET</span><span className="brand-slash">_</span></div>
+          <div className="brand-caption">NEO-TASHKENT // INTERACTIVE TERMINAL</div></div>
       </div>
-      <div className="flex items-center gap-2 flex-wrap">
-        <button onClick={onOpenWorkspace} className="px-2 py-1 rounded text-[11px] border border-cyan-700 text-cyan-300 hover:bg-cyan-950 flex items-center gap-1">
-          <span className="material-symbols-outlined text-[14px]">terminal</span>BROWSER LAB
-        </button>
-        <button
-          onClick={onToggleSound}
-          aria-label={`SOUND: ${soundEnabled ? 'ON' : 'OFF'} — Audio effektlar`}
-          aria-pressed={soundEnabled}
-          className="px-2 py-1 rounded text-[11px] border border-emerald-700 text-emerald-300 hover:bg-emerald-950 flex items-center gap-1"
-        >
-          <span aria-hidden="true" className="material-symbols-outlined text-[14px]">{soundEnabled ? 'volume_up' : 'volume_off'}</span>
-          SOUND: {soundEnabled ? 'ON' : 'OFF'}
-        </button>
-        <button
-          onClick={onOpenDownload}
-          className="px-2.5 py-1 rounded text-[11px] border border-cyan-500/80 bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-300 transition-all flex items-center gap-1 shadow-[0_0_12px_rgba(6,182,212,0.3)] font-bold animate-pulse"
-          title="Dasturning to'liq kodini yuklab olish"
-        >
-          <span className="material-symbols-outlined text-[14px]">download</span>
-          KODNI YUKLAB OLISH
-        </button>
-        <button
-          onClick={onToggleMatrix}
-          className={`px-2 py-1 rounded text-[11px] border transition-all flex items-center gap-1 ${
-            isMatrixRain
-              ? 'border-emerald-400 bg-emerald-950 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.4)]'
-              : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-emerald-600 hover:text-emerald-300'
-          }`}
-          title="Matritsa yomg'iri"
-        >
-          <span className="material-symbols-outlined text-[14px]">terminal</span>
-          MATRIX: {isMatrixRain ? 'ON' : 'OFF'}
-        </button>
-        <button
-          onClick={onOpenHelp}
-          className="px-2.5 py-1 rounded text-[11px] border border-emerald-600/60 bg-emerald-950/40 hover:bg-emerald-800/40 text-emerald-300 transition-all flex items-center gap-1"
-        >
-          <span className="material-symbols-outlined text-[14px]">help</span>
-          KOMANDALAR
-        </button>
+      <div className="header-actions">
+        <button onClick={onOpenWorkspace} className="hud-button hud-button-primary"><Icon name="terminal"/>BROWSER LAB<Icon name="arrow"/></button>
+        <button onClick={onToggleSound} aria-label={`SOUND: ${soundEnabled ? 'ON' : 'OFF'} — Audio effektlar`} aria-pressed={soundEnabled} className="hud-button"><Icon name={soundEnabled ? 'volume_up' : 'volume_off'}/>SOUND: {soundEnabled ? 'ON' : 'OFF'}</button>
+        <button onClick={onToggleMatrix} aria-pressed={isMatrixRain} className="hud-button"><Icon name="grid_view"/>MATRIX: {isMatrixRain ? 'ON' : 'OFF'}</button>
+        <button onClick={onOpenDownload} className="hud-button"><Icon name="download"/>KODNI YUKLAB OLISH</button>
+        <button onClick={onOpenHelp} className="hud-button"><Icon name="help"/>KOMANDALAR</button>
       </div>
     </div>
-  );
+    <div className="telemetry-strip">
+      <div className="agent-identity"><span className="online-light" aria-hidden="true"/><span><span className="telemetry-caption">AGENT // LVL {stats.level}</span><strong>@{stats.handle}</strong></span><span className="session-tag">GAME SESSION</span></div>
+      <div className="telemetry-stat"><span className="telemetry-caption">CREDITS</span><strong className="credit-value">{stats.credits} <span>₢</span></strong></div>
+      <div className="telemetry-stat telemetry-memory"><span className="telemetry-caption">RAM / MEMORY</span><strong>{stats.ram}<span className="stat-secondary"> / {stats.maxRam} MB</span></strong><div className="meter" aria-hidden="true"><span style={{width:`${Math.min(100, stats.ram / stats.maxRam * 100)}%`}}/></div></div>
+      <div className={`telemetry-stat telemetry-heat ${heatClass}`}><span className="telemetry-caption">CPU / THERMAL</span><strong>{stats.cpuHeat}°C</strong><div className="meter" aria-hidden="true"><span style={{width:`${stats.cpuHeat}%`}}/></div></div>
+      <div className="telemetry-stat reputation-stat"><span className="telemetry-caption">REPUTATION</span><strong>{stats.reputation}<span className="stat-secondary"> / 100</span></strong></div>
+    </div>
+  </header>;
 };

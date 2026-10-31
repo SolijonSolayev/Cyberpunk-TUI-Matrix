@@ -21,7 +21,6 @@
     "botid": "^1.5.12",
     "express": "5.3.0",
     "jszip": "3.10.1",
-    "material-symbols": "0.48.2",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "undici": "7.30.1"

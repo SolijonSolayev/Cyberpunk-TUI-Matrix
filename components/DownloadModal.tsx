@@ -1,3 +1,4 @@
+import {Icon} from './Icon';
 import React, { useState, useEffect } from 'react';
 import { downloadBlob } from '../lib/download';
 import JSZip from 'jszip';
@@ -57,7 +58,7 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose })
         {/* Sarlavha paneli */}
         <div className="flex items-center justify-between border-b border-emerald-800/80 px-4 py-3 bg-zinc-900/90">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-emerald-400 text-[20px]">file_download</span>
+            <Icon name="file_download" className="text-emerald-400 text-[20px]"/>
             <div>
               <span className="font-bold text-sm tracking-wider text-emerald-200">
                 DASTUR MANBA KODLARINI YUKLAB OLISH (SOURCE REPOSITORY)
@@ -71,7 +72,7 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose })
             onClick={onClose}
             className="text-zinc-400 hover:text-emerald-300 p-1.5 rounded hover:bg-emerald-950/60"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <Icon name="close" className="text-[20px]"/>
           </button>
         </div>
         {error && <p role="alert" className="text-red-400 px-4 py-2">{error}</p>}
@@ -94,9 +95,7 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose })
                   }`}
                 >
                   <span className="truncate flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[14px]">
-                      {file.endsWith('.tsx') ? 'code' : 'description'}
-                    </span>
+                    <Icon name={file.endsWith('.tsx') ? 'code' : 'description'} className="text-[14px]"/>
                     {file}
                   </span>
                   {activeFile === file && (
@@ -110,7 +109,7 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose })
           <div className="flex-1 flex flex-col bg-zinc-950 p-3 overflow-hidden">
             <div className="flex items-center justify-between border-b border-zinc-800 pb-2 mb-2">
               <span className="text-zinc-300 font-bold flex items-center gap-1">
-                <span className="material-symbols-outlined text-[16px] text-cyan-400">code_blocks</span>
+                <Icon name="code_blocks" className="text-[16px] text-cyan-400"/>
                 {activeFile}
               </span>
               <div className="flex items-center gap-2">
@@ -118,16 +117,14 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose })
                   onClick={handleCopyCode}
                   className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white rounded flex items-center gap-1 transition-all"
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {copiedFile === activeFile ? 'check' : 'content_copy'}
-                  </span>
+                  <Icon name={copiedFile === activeFile ? 'check' : 'content_copy'} className="text-[14px]"/>
                   <span>{copiedFile === activeFile ? 'Nusxalandi ✓' : 'Nusxa olish'}</span>
                 </button>
                 <button
                   disabled={!source[activeFile]} onClick={handleDownloadSingleFile}
                   className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 border border-emerald-700/60 text-emerald-300 hover:text-emerald-200 rounded flex items-center gap-1 transition-all"
                 >
-                  <span className="material-symbols-outlined text-[14px]">download</span>
+                  <Icon name="download" className="text-[14px]"/>
                   <span>Ushbu faylni yuklash</span>
                 </button>
               </div>
@@ -140,7 +137,7 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose })
         {/* Pastki harakatlar paneli */}
         <div className="border-t border-emerald-900/80 px-4 py-3 bg-zinc-950/90 flex flex-wrap items-center justify-between gap-3">
           <div className="text-[11px] text-zinc-400 flex items-center gap-2">
-            <span className="material-symbols-outlined text-[16px] text-yellow-400">info</span>
+            <Icon name="info" className="text-[16px] text-yellow-400"/>
             <span>
               Haqiqiy loyiha fayllari brauzer orqali yuklanadi. Maxfiy sozlamalar arxivga kirmaydi.
             </span>
@@ -157,7 +154,7 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose })
               disabled={downloadStatus === 'downloading' || files.length === 0}
               className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-black font-bold rounded shadow-[0_0_15px_rgba(16,185,129,0.4)] flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
             >
-              <span className="material-symbols-outlined text-[16px]">folder_zip</span>
+              <Icon name="folder_zip" className="text-[16px]"/>
               <span>
                 {downloadStatus === 'downloading'
                   ? 'Arxivlanmoqda...'

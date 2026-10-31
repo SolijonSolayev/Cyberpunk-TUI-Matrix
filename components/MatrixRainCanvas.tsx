@@ -3,6 +3,7 @@ export const MatrixRainCanvas: React.FC<{ active: boolean }> = ({ active }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   useEffect(() => {
     if (!active) return;
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -23,7 +24,11 @@ export const MatrixRainCanvas: React.FC<{ active: boolean }> = ({ active }) => {
       rainDrops = Array.from({length: Math.floor(width / fontSize)}, () => 1);
     };
     window.addEventListener('resize', handleResize);
-    const render = () => {
+    let lastFrame = 0;
+    const render = (time: number) => {
+      animationFrameId = requestAnimationFrame(render);
+      if (document.hidden || motion.matches || time - lastFrame < 50) return;
+      lastFrame = time;
       ctx.fillStyle = 'rgba(5, 10, 8, 0.12)';
       ctx.fillRect(0, 0, width, height);
       ctx.fillStyle = '#10b981';
@@ -43,9 +48,8 @@ export const MatrixRainCanvas: React.FC<{ active: boolean }> = ({ active }) => {
         }
         rainDrops[i]++;
       }
-      animationFrameId = requestAnimationFrame(render);
     };
-    render();
+    animationFrameId = requestAnimationFrame(render);
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
@@ -55,7 +59,8 @@ export const MatrixRainCanvas: React.FC<{ active: boolean }> = ({ active }) => {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 pointer-events-none opacity-25 z-0"
+      aria-hidden="true"
+      className="absolute inset-0 pointer-events-none opacity-[0.12] z-0"
     />
   );
 };

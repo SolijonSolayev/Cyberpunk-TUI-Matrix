@@ -1,3 +1,4 @@
+import {Icon} from './components/Icon';
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { askOracle, type OracleMessage } from './lib/oracle';
 import { PlayerStats, TerminalLog, HackNode } from './types';
@@ -7,7 +8,7 @@ import { MatrixRainCanvas } from './components/MatrixRainCanvas';
 import { GridMiniGame } from './components/GridMiniGame';
 import { HackingPuzzle } from './components/HackingPuzzle';
 import { HelpModal } from './components/HelpModal';
-import { DownloadModal } from './components/DownloadModal';
+const DownloadModal = lazy(() => import('./components/DownloadModal').then(module => ({default: module.DownloadModal})));
 import {TerminalAudio} from './lib/audio';
 import {TOOLS, TOOL_IDS, INITIAL_INVENTORY, isToolId, buyTool, consumeTool} from './lib/tools';
 // Kiberpank oflayn lokal javoblar bazasi (server vaqtincha band yoki uzilgan holatda)
@@ -434,7 +435,7 @@ export default function App() {
     >
       <h1 className="sr-only">Cyberpunk TUI Matrix — terminal o‘yini va Browser Lab</h1>
       {/* Orqa fondagi Matritsa */}
-      <MatrixRainCanvas active={isMatrixRain} />
+      <MatrixRainCanvas active={isMatrixRain && !isWorkspaceOpen} />
       {/* Yuqori TUI Status bar */}
       <TerminalHeader
         onOpenWorkspace={openWorkspace}
@@ -447,13 +448,13 @@ export default function App() {
         onOpenDownload={() => setIsDownloadOpen(true)}
       />
       {/* Tezkor TUI boshqaruv tugmalari paneli */}
-      <div className="bg-black/80 border-b border-emerald-950 px-4 py-1.5 flex items-center gap-2 overflow-x-auto text-[11px] z-10">
+      <div className="command-strip">
         <span className="text-zinc-500 font-bold">TEZKOR BUYRUQLAR:</span>
         <button
           onClick={() => executeCommand('download')}
           className="px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-500 text-cyan-300 hover:bg-cyan-900/60 font-bold flex items-center gap-1 shadow-[0_0_8px_rgba(6,182,212,0.3)]"
         >
-          <span className="material-symbols-outlined text-[13px]">download</span>
+          <Icon name="download" className="text-[13px]"/>
           $ download
         </button>
         <button
@@ -505,8 +506,10 @@ export default function App() {
           $ oracle [savol]
         </button>
       </div>
-      {/* Asosiy Terminal Jurnali */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-2 z-10 text-xs md:text-sm font-mono scroll-smooth">
+      <div className="console-layout">
+      <section className="console-panel" aria-label="Terminal konsoli">
+      <div className="console-title"><span><span className="console-dots" aria-hidden="true">● ● ●</span> root@cyberdeck:~</span><span className="console-protocol">INTERACTIVE SHELL // v4.19</span></div>
+      <div className="console-output space-y-2 text-xs md:text-sm font-mono">
         {logs.map((log) => {
           let colorClass = 'text-emerald-400';
           if (log.type === 'input') colorClass = 'text-emerald-200 font-bold';
@@ -549,15 +552,25 @@ export default function App() {
         )}
         {isAiThinking && (
           <div className="flex items-center gap-2 text-cyan-300 text-xs animate-pulse">
-            <span className="material-symbols-outlined text-[14px]">psychology</span>
+            <Icon name="psychology" className="text-[14px]"/>
             <span>AI Core tahlil qilmoqda va neyron to'rlarni hisoblamoqda...</span>
           </div>
         )}
         <div ref={logsEndRef} />
       </div>
+      </section>
+      <aside className="deck-sidebar" aria-label="O‘yin tugunlari va inventar">
+        <div className="side-heading"><Icon name="security"/> NETWORK NODES <span>{nodes.filter(node => node.solved).length}/{nodes.length}</span></div>
+        <p className="side-caption">SIMULATED NETWORK / O‘YIN</p>
+        {nodes.map(node => <button key={node.id} className="node-card" onClick={() => executeCommand(`probe ${node.ip}`)}><span className="node-state">{node.solved ? 'DECRYPTED' : `SECURITY ${node.securityLevel}`}</span><strong>{node.name}</strong><span className="node-address">{node.ip}<Icon name="arrow"/></span></button>)}
+        <div className="side-heading inventory-heading"><Icon name="code_blocks"/> LOADOUT</div>
+        {TOOL_IDS.map(id => <button className="loadout-item" key={id} onClick={() => executeCommand('tools')}><span>{TOOLS[id].name}</span><strong>×{inventory[id]}</strong></button>)}
+        <div className="side-note">// Boshlash uchun <button onClick={() => executeCommand('scan')}>scan</button> yozing.<br/>Tugunni tanlang va HEX shifrni yeching.</div>
+      </aside>
+      </div>
       {/* Terminal Buyruq Kiritish Qatori */}
-      <div className="border-t-2 border-emerald-500/40 bg-black/95 px-4 py-3 flex items-center gap-2 z-10 shadow-[0_-4px_20px_rgba(16,185,129,0.1)]">
-        <span className="text-emerald-400 font-bold text-sm select-none animate-pulse">
+      <div className="command-input">
+        <span className="text-emerald-400 font-bold text-sm select-none">
           root@cyberdeck:~$
         </span>
         <input
@@ -569,7 +582,7 @@ export default function App() {
           onChange={(e) => { setInputVal(e.target.value); audio.play('key'); }}
           onKeyDown={handleKeyDown}
           placeholder={isGridActive ? 'Grid: WASD / strelkalar. ESC bilan chiqing.' : 'Buyruq yozing: help, scan, grid, oracle <savol>...'}
-          className="flex-1 bg-transparent text-emerald-300 outline-none font-mono text-xs md:text-sm placeholder-zinc-700 caret-emerald-400"
+          className="flex-1 min-w-0 bg-transparent text-emerald-300 outline-none font-mono text-xs md:text-sm placeholder-zinc-700 caret-emerald-400"
           autoFocus
         />
         <button
@@ -582,7 +595,7 @@ export default function App() {
           className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-black font-bold rounded text-xs transition-all flex items-center gap-1 active:scale-95"
         >
           <span>ENTER</span>
-          <span className="material-symbols-outlined text-[14px]">subdirectory_arrow_left</span>
+          <Icon name="subdirectory_arrow_left" className="text-[14px]"/>
         </button>
       </div>
       {/* Buyruqlar haqida yordam modali */}
@@ -592,10 +605,7 @@ export default function App() {
         onSelectCommand={(cmd) => { if (cmd.includes('<')) setInputVal(cmd.split(' ')[0] + ' '); else void executeCommand(cmd); }}
       />
       {/* Kodni ko'rish va yuklab olish modali */}
-      <DownloadModal
-        isOpen={isDownloadOpen}
-        onClose={() => setIsDownloadOpen(false)}
-      />
+      {isDownloadOpen && <Suspense fallback={<div role="status" className="fixed inset-0 z-50 bg-black/90 text-emerald-300 p-8">Kod arxivi yuklanmoqda…</div>}><DownloadModal isOpen onClose={() => setIsDownloadOpen(false)}/></Suspense>}
       {workspaceOpened && <Suspense fallback={<div className="fixed inset-0 z-[60] bg-black text-emerald-300 p-8">Brauzer terminali yuklanmoqda…</div>}>
         <BrowserWorkspace open={isWorkspaceOpen} onClose={() => setIsWorkspaceOpen(false)}/>
       </Suspense>}

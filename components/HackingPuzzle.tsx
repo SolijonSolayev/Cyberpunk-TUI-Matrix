@@ -1,3 +1,4 @@
+import {Icon} from './Icon';
 import React, { useState, useEffect, useRef } from 'react';
 import { HackNode } from '../types';
 interface HackingPuzzleProps {
@@ -39,7 +40,7 @@ export const HackingPuzzle: React.FC<HackingPuzzleProps> = ({ node, onSuccess, o
     <div className="border border-cyan-500/50 bg-black/95 rounded p-4 font-mono text-xs my-2 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
       <div className="flex items-center justify-between border-b border-cyan-900/60 pb-2 mb-3">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-[16px] text-cyan-300">security</span>
+          <Icon name="security" className="text-[16px] text-cyan-300"/>
           <span className="font-bold text-cyan-200">PENETRATION ATTACK: {node.name}</span>
         </div>
         <div className="text-yellow-400 font-bold">MUKOFOT: +{node.reward} ₢</div>

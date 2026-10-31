@@ -1,3 +1,4 @@
+import {Icon} from './Icon';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {createGrid, moveGrid, isGridWall, GRID_WIDTH, GRID_HEIGHT} from '../lib/grid';
 interface GridMiniGameProps {
@@ -85,7 +86,7 @@ export const GridMiniGame: React.FC<GridMiniGameProps> = ({ onCollectReward, onE
     <div aria-label="Kiber-labirint" role="region" className="border border-emerald-500/50 bg-black/95 rounded p-4 font-mono text-xs my-2 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
       <div className="flex items-center justify-between border-b border-emerald-800/60 pb-2 mb-3">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-[16px] text-cyan-400">grid_view</span>
+          <Icon name="grid_view" className="text-[16px] text-cyan-400"/>
           <span className="font-bold text-cyan-300">ROGUELIKE GRID PROTOCOL [LEVEL 1]</span>
         </div>
         <div className="flex items-center gap-4">

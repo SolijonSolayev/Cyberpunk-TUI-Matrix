@@ -12,7 +12,7 @@ export const sourceFiles = [
   'lib/audio.ts', 'lib/tools.ts', 'tests/tools.spec.ts', 'tests/audio.spec.ts', 'lib/grid.ts', 'tests/grid.spec.ts', 'lib/source.ts', 'lib/oracle.ts', 'lib/download.ts',
   'components/BrowserWorkspace.tsx', 'lib/workspace.ts', 'tests/workspace.spec.ts', 'components/DownloadModal.tsx', 'components/GridMiniGame.tsx',
   'components/HackingPuzzle.tsx', 'components/HelpModal.tsx',
-  'components/MatrixRainCanvas.tsx', 'components/TerminalHeader.tsx',
+  'components/Icon.tsx', 'components/MatrixRainCanvas.tsx', 'components/TerminalHeader.tsx',
   'playwright.config.ts', 'tests/app.spec.ts', 'tests/oracle.test.mjs',
   'vercel.json', '.vercelignore',
   'api/oracle.js', 'api/health.js', 'tests/vercel.test.mjs'
