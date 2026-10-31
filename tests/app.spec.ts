@@ -2,6 +2,15 @@ import {test, expect} from '@playwright/test';
 import JSZip from 'jszip';
 import fs from 'node:fs/promises';
 
+// Exercise the installed SDK without contacting the live challenge service.
+// Real bot classification requires a deployed Vercel request context.
+test.beforeEach(async ({page}) => {
+  await page.route('**/149e9513-01fa-4fb0-aad4-566afd725d1b/**', route => route.fulfill({
+    contentType: 'application/javascript',
+    body: 'window.V_C.push({b:0,v:"test-challenge",e:"test-only",d:0});'
+  }));
+});
+
 test('terminal commands, hack reward, upgrade and matrix toggle', async ({page}) => {
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
@@ -57,4 +66,23 @@ test('downloaded ZIP contains a runnable project, not placeholders or secrets', 
   const singlePromise = page.waitForEvent('download');
   await page.getByRole('button', {name: 'Ushbu faylni yuklash', exact: false}).click();
   expect((await singlePromise).suggestedFilename()).toBe('App.tsx');
+});
+
+test('BotID attaches challenge headers on Vercel builds and blocked requests use offline fallback', async ({page}) => {
+  let headers: Record<string, string> = {};
+  await page.route('**/api/oracle', route => {
+    headers = route.request().headers();
+    return route.fulfill({status: 403, json: {error: 'Avtomatik so‘rov bloklandi.'}});
+  });
+  await page.goto('/');
+  await page.locator('input').fill('oracle salom');
+  await page.locator('input').press('Enter');
+  await expect(page.getByText('[KESH-JAVOB]', {exact: false})).toBeVisible();
+  if (process.env.VERCEL === '1') {
+    expect(JSON.parse(headers['x-is-human']).v).toBe('test-challenge');
+    expect(headers['x-path']).toBe('/api/oracle');
+    expect(headers['x-method']).toBe('POST');
+  } else {
+    expect(headers['x-is-human']).toBeUndefined();
+  }
 });

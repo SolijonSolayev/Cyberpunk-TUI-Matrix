@@ -74,3 +74,11 @@ Repozitoriydagi `vercel.json` Vite build va `dist` natijasini belgilaydi. `/api/
 5. Joylashtirilgan saytda `/api/health` javobini, `scan`, `hack`, `grid`, `download` va `oracle` buyruqlarini tekshiring.
 
 CLI orqali: `vercel --prod` (avval Vercel hisobiga kirish kerak). Vercel access tokenini chat yoki Git’ga joylamang. Jonli AI yoqilgan ommaviy sayt uchun Vercel Firewall rate limiting yoki autentifikatsiyani sozlang; lokal serverning bitta jarayonga tegishli concurrency cheklovi serverless muhitda global limit bo‘la olmaydi.
+
+## BotID himoyasi
+
+Vercel buildlarida BotID Basic `POST /api/oracle` so‘rovlarini himoyalaydi: brauzer challenge ma’lumotlarini qo‘shadi, Node funksiyasi esa Gemini chaqirilishidan oldin `checkBotId()` orqali tekshiradi. Botlar `403` oladi; tekshiruv xatosida AI chaqirilmaydi (`503`), terminal esa oflayn javobga qaytadi. `vercel.json` dagi challenge/proxy rewritelarini saqlang. Deep Analysis yoqilmagan.
+
+BotID Vercel funksiyasining request konteksti va Vercel OIDC ma’lumotlariga tayanadi. Kalitni qo‘lda yaratish yoki brauzerga joylash kerak emas. Lokal `npm run dev` va oddiy `npm run build` challenge skriptini yuklamaydi; lokal Express serveri Vercel himoyasini taqlid qilmaydi. Production himoya Vercel’da yangi deploydan keyin ishlaydi. Haqiqiy aniqlashni Vercel sayti va BotID kuzatuvlari orqali tekshiring.
+
+`VERCEL=1 npm run build` va `VERCEL=1 CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e` Vercel uchun yig‘ilgan brauzer integratsiyasini soxta challenge bilan sinaydi; bu jonli BotID tasniflash testi emas. Server unit testlari bot bloklanishini, inson so‘rovini, tekshiruv xatosini va Vercel’da development bypass taqiqlanishini tekshiradi.
