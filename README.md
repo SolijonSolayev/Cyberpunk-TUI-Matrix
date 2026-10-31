@@ -62,3 +62,15 @@ npm run test:e2e
 Linux CI uchun `npx playwright install --with-deps chromium`. Oldindan o‘rnatilgan Chromium uchun `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e`. E2E testlar 5180-portda production serverini avtomatik ishga tushiradi. Unit testlar Gemini protokolini mock bilan, brauzer testlari buyruqlar, mukofotlar, mini-o‘yin, AI fallback va yuklab olingan ZIP tarkibini tekshiradi. Haqiqiy pullik Gemini so‘rovlari avtomatik testlarda yuborilmaydi.
 
 ZIP `scripts/source-archive.ts` dagi aniq ro‘yxatdan yig‘iladi. Unda haqiqiy manbalar, lockfile va ishga tushirish fayllari bor; `.env`, maxfiy kalitlar, `node_modules` va build natijalari kiritilmaydi. Yangi loyiha fayli qo‘shilsa shu ro‘yxatni ham yangilang.
+
+## Vercel’da joylashtirish
+
+Repozitoriydagi `vercel.json` Vite build va `dist` natijasini belgilaydi. `/api/health` va `/api/oracle` alohida Node serverless funksiyalari orqali ishlaydi; Vercel’da `npm start` ishlatilmaydi.
+
+1. Vercel’da ushbu GitHub repozitoriyni import qiling, Node.js 24 ni tanlang.
+2. Root Directory — repozitoriyning ildizi. Build — `npm run build`, Output — `dist`, Install — `npm ci` (konfiguratsiyada mavjud).
+3. Dastlab kalitsiz joylashtirish mumkin: o‘yin va oflayn Oracle ishlaydi.
+4. Jonli AI kerak bo‘lsa, Vercel Environment Variables ichiga `GEMINI_API_KEY` va ixtiyoriy `GEMINI_MODEL` kiriting, so‘ng redeploy qiling. Kalitni `VITE_` bilan boshlamang.
+5. Joylashtirilgan saytda `/api/health` javobini, `scan`, `hack`, `grid`, `download` va `oracle` buyruqlarini tekshiring.
+
+CLI orqali: `vercel --prod` (avval Vercel hisobiga kirish kerak). Vercel access tokenini chat yoki Git’ga joylamang. Jonli AI yoqilgan ommaviy sayt uchun Vercel Firewall rate limiting yoki autentifikatsiyani sozlang; lokal serverning bitta jarayonga tegishli concurrency cheklovi serverless muhitda global limit bo‘la olmaydi.

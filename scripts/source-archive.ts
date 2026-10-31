@@ -14,7 +14,8 @@ export const sourceFiles = [
   'components/HackingPuzzle.tsx', 'components/HelpModal.tsx',
   'components/MatrixRainCanvas.tsx', 'components/TerminalHeader.tsx',
   'playwright.config.ts', 'tests/app.spec.ts', 'tests/oracle.test.mjs',
-  '.github/workflows/ci.yml'
+  '.github/workflows/ci.yml', '.github/workflows/eslint.yml', 'vercel.json', '.vercelignore',
+  'api/oracle.js', 'api/health.js', 'tests/vercel.test.mjs'
 ];
 export function sourceArchive(): Plugin {
   let root: string;
