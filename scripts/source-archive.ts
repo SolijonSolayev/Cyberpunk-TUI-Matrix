@@ -14,14 +14,29 @@ export const sourceFiles = [
   'components/HackingPuzzle.tsx', 'components/HelpModal.tsx',
   'components/MatrixRainCanvas.tsx', 'components/TerminalHeader.tsx',
   'playwright.config.ts', 'tests/app.spec.ts', 'tests/oracle.test.mjs',
-  '.github/workflows/ci.yml', '.github/workflows/eslint.yml', 'vercel.json', '.vercelignore',
+  'vercel.json', '.vercelignore',
   'api/oracle.js', 'api/health.js', 'tests/vercel.test.mjs'
 ];
+// GitHub's template/import flow may omit workflows. They are useful metadata,
+// but are not required to install or run the downloaded application.
+const optionalSourceFiles = ['.github/workflows/ci.yml', '.github/workflows/eslint.yml'];
+
 export function sourceArchive(): Plugin {
   let root: string;
-  const archive = async () => Object.fromEntries(await Promise.all(sourceFiles.map(async file =>
-    [file, await fs.readFile(path.join(root, file), 'utf8')]
-  )));
+  const archive = async () => {
+    const required = await Promise.all(sourceFiles.map(async file =>
+      [file, await fs.readFile(path.join(root, file), 'utf8')]
+    ));
+    const optional = await Promise.all(optionalSourceFiles.map(async file => {
+      try {
+        return [[file, await fs.readFile(path.join(root, file), 'utf8')]];
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+        throw error;
+      }
+    }));
+    return Object.fromEntries([...required, ...optional.flat()]);
+  };
   return {
     name: 'source-archive',
     configResolved(config) { root = config.root; },
