@@ -3,6 +3,8 @@ import { PlayerStats } from '../types';
 interface TerminalHeaderProps {
   stats: PlayerStats;
   isMatrixRain: boolean;
+  soundEnabled: boolean;
+  onToggleSound: () => void;
   onToggleMatrix: () => void;
   onOpenHelp: () => void;
   onOpenDownload: () => void;
@@ -10,6 +12,8 @@ interface TerminalHeaderProps {
 export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
   stats,
   isMatrixRain,
+  soundEnabled,
+  onToggleSound,
   onToggleMatrix,
   onOpenHelp,
   onOpenDownload
@@ -39,7 +43,16 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
           CPU TEMP: <strong className={heatColor}>{stats.cpuHeat}°C</strong>
         </span>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={onToggleSound}
+          aria-label="Audio effektlar"
+          aria-pressed={soundEnabled}
+          className="px-2 py-1 rounded text-[11px] border border-emerald-700 text-emerald-300 hover:bg-emerald-950 flex items-center gap-1"
+        >
+          <span className="material-symbols-outlined text-[14px]">{soundEnabled ? 'volume_up' : 'volume_off'}</span>
+          SOUND: {soundEnabled ? 'ON' : 'OFF'}
+        </button>
         <button
           onClick={onOpenDownload}
           className="px-2.5 py-1 rounded text-[11px] border border-cyan-500/80 bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-300 transition-all flex items-center gap-1 shadow-[0_0_12px_rgba(6,182,212,0.3)] font-bold animate-pulse"

@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { askOracle, type OracleMessage } from './lib/oracle';
 import { PlayerStats, TerminalLog, HackNode } from './types';
-import { ASCII_HEADER, INITIAL_NODES } from './constants';
+import { ASCII_HEADER, INITIAL_NODES, HELP_COMMANDS } from './constants';
 import { TerminalHeader } from './components/TerminalHeader';
 import { MatrixRainCanvas } from './components/MatrixRainCanvas';
 import { GridMiniGame } from './components/GridMiniGame';
 import { HackingPuzzle } from './components/HackingPuzzle';
 import { HelpModal } from './components/HelpModal';
 import { DownloadModal } from './components/DownloadModal';
+import {TerminalAudio} from './lib/audio';
+import {TOOLS, TOOL_IDS, INITIAL_INVENTORY, isToolId, buyTool, consumeTool} from './lib/tools';
 // Kiberpank oflayn lokal javoblar bazasi (server vaqtincha band yoki uzilgan holatda)
 const OFFLINE_ORACLE_RESPONSES = [
   '>> [KESH-JAVOB]: Neyron magistrallarida ma\'lumotlar oqimi haddan tashqari zich. Kiber-matritsa taxmini: Kelajak korporatsiyalar emas, balki shifrlangan tarmoq erkinligi qo\'lida bo\'ladi.',
@@ -47,6 +49,17 @@ export default function App() {
     }
   ]);
   const [inputVal, setInputVal] = useState('');
+  const [inventory, setInventory] = useState({...INITIAL_INVENTORY});
+  const [empArmed, setEmpArmed] = useState(false);
+  const [gridEmp, setGridEmp] = useState(false);
+  const [decryptorNode, setDecryptorNode] = useState<string | null>(null);
+  const [hackSession, setHackSession] = useState(0);
+  const [audio] = useState(() => new TerminalAudio());
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundVolume, setSoundVolume] = useState(20);
+  const soundRequest = useRef(0);
+  const sessionStarted = useRef(Date.now());
+  useEffect(() => () => audio.dispose(), [audio]);
   const [nodes, setNodes] = useState<HackNode[]>(INITIAL_NODES);
   const [activeHackNode, setActiveHackNode] = useState<HackNode | null>(null);
   const [isGridActive, setIsGridActive] = useState(false);
@@ -96,6 +109,7 @@ export default function App() {
     inputRef.current?.focus();
   };
   const addLog = (text: string, type: TerminalLog['type'] = 'output') => {
+    if (type === 'success' || type === 'error' || type === 'warning') audio.play(type);
     const time = new Date().toTimeString().split(' ')[0];
     setLogs((prev) => [
       ...prev,
@@ -107,10 +121,23 @@ export default function App() {
       }
     ]);
   };
+  const setSound = async (enabled: boolean) => {
+    const request = ++soundRequest.current;
+    if (!enabled) {
+      audio.disable(); setSoundEnabled(false);
+      addLog('Audio effektlar: O‘CHIRILDI.', 'system');
+      return;
+    }
+    const ready = await audio.enable();
+    if (request !== soundRequest.current) return;
+    setSoundEnabled(ready);
+    addLog(ready ? `Audio effektlar: YOQILDI. Ovoz: ${soundVolume}%.` : 'Brauzer audio chiqishini ocholmadi. Ovoz tugmasini yana bosing.', ready ? 'success' : 'error');
+  };
   // Buyruqlarni bajarish mexanizmi
   const executeCommand = async (rawCmd: string) => {
     const trimmed = rawCmd.trim();
     if (!trimmed) return;
+    audio.play('command');
     commandHistory.current = [...commandHistory.current, trimmed].slice(-100);
     historyIndex.current = commandHistory.current.length;
     historyDraft.current = '';
@@ -126,20 +153,90 @@ export default function App() {
         break;
       }
       case 'help': {
-        addLog(
-          `Mavjud buyruqlar:\n` +
-          `• download      - Dasturning to'liq manba kodlarini yuklab olish oynasini ochish\n` +
-          `• scan          - Atrofdagi korporativ serverlarni topish\n` +
-          `• hack <IP>     - Tanlangan serverni buzish (masalan: hack 192.168.4.102)\n` +
-          `• grid          - Kiber-labirint 2D mini-o'yinini ishga tushirish\n` +
-          `• oracle <matn> - Gemini AI yadrosi bilan jonli kiberpank muloqot\n` +
-          `• status        - Tizim apparat holati va resurslar\n` +
-          `• cool          - CPU sovutgichini yoqish (haroratni pasaytirish)\n` +
-          `• upgrade       - Tizim RAM hajmini oshirish (Narxi: 300 ₢)\n` +
-          `• matrix        - Matritsa animatsiyasini yoqish/o'chirish\n` +
-          `• clear         - Ekranni tozalash`,
-          'system'
-        );
+        addLog('Mavjud buyruqlar:\n' + HELP_COMMANDS.map(item => `• ${item.cmd.padEnd(20)} - ${item.desc}`).join('\n'), 'system');
+        break;
+      }
+      case 'whoami': {
+        addLog(`Agent: @${stats.handle} | Daraja: ${stats.level} | Reputatsiya: ${stats.reputation}/100`, 'system');
+        break;
+      }
+      case 'history': {
+        const start = Math.max(0, commandHistory.current.length - 20);
+        addLog('BUYRUQLAR TARIXI:\n' + commandHistory.current.slice(start).map((line, i) => `${start + i + 1}. ${line}`).join('\n'), 'system');
+        break;
+      }
+      case 'uptime': {
+        const seconds = Math.floor((Date.now() - sessionStarted.current) / 1000);
+        addLog(`SESSIYA: ${Math.floor(seconds / 60)} daqiqa ${seconds % 60} soniya.`, 'system');
+        break;
+      }
+      case 'probe': {
+        const target = nodes.find(node => node.ip === args[0]);
+        if (!target) { addLog('Nishon topilmadi. "probe <IP>" uchun scan ro‘yxatidagi IP ni kiriting.', 'error'); break; }
+        audio.play('scan');
+        addLog(`NISHON TAHLILI: ${target.name}\nIP: ${target.ip}\nHimoya: LVL ${target.securityLevel}\nHEX buferi: ${target.codePattern.length} ta kod\nMukofot: ${target.reward} ₢\nHolat: ${target.solved ? 'BUZILGAN' : 'HIMOYALANGAN'}\nYordamchi: use decryptor ${target.ip}`, 'system');
+        break;
+      }
+      case 'tools':
+      case 'inventory': {
+        addLog('XAKERLIK INVENTARI:\n' + TOOL_IDS.map(id => `${id.padEnd(12)} ×${inventory[id]} — ${TOOLS[id].name}`).join('\n') +
+          `\nEMP: ${empArmed ? 'TAYYOR — keyingi grid uchun' : 'tayyorlanmagan'}\nIshlatish: use decryptor <IP> | use emp | use coolant`, 'system');
+        break;
+      }
+      case 'shop': {
+        addLog('KIBER-QUROLLAR DO‘KONI:\n' + TOOL_IDS.map(id => `${id} — ${TOOLS[id].price} ₢, ${TOOLS[id].ramCost} MB RAM\n  ${TOOLS[id].description}`).join('\n') +
+          `\nMablag‘: ${stats.credits} ₢. Sotib olish: buy <qurol>`, 'system');
+        break;
+      }
+      case 'buy': {
+        const id = args[0];
+        if (!isToolId(id) || args.length !== 1) { addLog('Ishlatish: buy decryptor | buy emp | buy coolant', 'error'); break; }
+        const result = buyTool({...stats, cpuHeat}, inventory, id);
+        if (!result.ok) { addLog(result.message, 'error'); break; }
+        setStats(result.stats); setInventory(result.inventory);
+        addLog(result.message, 'success');
+        break;
+      }
+      case 'use': {
+        const id = args[0];
+        if (!isToolId(id) || args.length !== (id === 'decryptor' ? 2 : 1)) {
+          addLog('Ishlatish: use decryptor <IP> | use emp | use coolant', 'error'); break;
+        }
+        const target = id === 'decryptor' ? nodes.find(node => node.ip === args[1]) : undefined;
+        if (id === 'decryptor' && (!target || target.solved)) {
+          addLog('Buzilmagan o‘yin nishonini kiriting. "scan" ro‘yxatini tekshiring.', 'error'); break;
+        }
+        if (id === 'decryptor' && activeHackNode?.id === target?.id && decryptorNode === target?.id) {
+          addLog('Bu urinish uchun decryptor allaqachon ishlatilgan.', 'warning'); break;
+        }
+        if (id === 'emp' && (empArmed || isGridActive)) {
+          addLog('EMP keyingi labirint uchun tayyorlangan yoki grid hozir faol.', 'warning'); break;
+        }
+        const result = consumeTool({...stats, cpuHeat}, inventory, id);
+        if (!result.ok) { addLog(result.message, 'error'); break; }
+        setStats(result.stats); setInventory(result.inventory);
+        if (id === 'decryptor' && target) {
+          setDecryptorNode(target.id); setHackSession(value => value + 1); setActiveHackNode(target);
+          addLog(`Decryptor ${target.name} buferining birinchi HEX kodini kiritdi. −12 MB RAM.`, 'success');
+        } else if (id === 'emp') {
+          setEmpArmed(true);
+          addLog('EMP tayyor! Keyingi grid o‘yinida daemonlar 3 → 2. −18 MB RAM.', 'success');
+        } else {
+          addLog(`Cryo Patch: CPU ${result.stats.cpuHeat}°C, RAM ${result.stats.ram}/${result.stats.maxRam} MB.`, 'success');
+        }
+        break;
+      }
+      case 'sound': {
+        if (!args.length) { addLog(`AUDIO: ${soundEnabled ? 'ON' : 'OFF'} | Ovoz: ${soundVolume}%. Buyruqlar: sound on/off, sound volume 0–100, sound test.`, 'system'); break; }
+        if (args[0] === 'on' && args.length === 1) await setSound(true);
+        else if (args[0] === 'off' && args.length === 1) await setSound(false);
+        else if (args[0] === 'volume' && args.length === 2 && args[1].trim() !== '' && Number.isFinite(Number(args[1])) && Number(args[1]) >= 0 && Number(args[1]) <= 100) {
+          const volume = Number(args[1]); audio.setVolume(volume); setSoundVolume(volume);
+          addLog(`Ovoz balandligi: ${volume}%.`, 'system');
+        } else if (args[0] === 'test' && args.length === 1) {
+          if (soundEnabled) { audio.play('success'); addLog('Audio namuna ijro etildi.', 'system'); }
+          else addLog('Avval "sound on" bilan ovozni yoqing.', 'warning');
+        } else addLog('Ishlatish: sound on | sound off | sound volume 0–100 | sound test', 'error');
         break;
       }
       case 'clear': {
@@ -186,6 +283,7 @@ export default function App() {
         break;
       }
       case 'scan': {
+        audio.play('scan');
         addLog('>> Tarmoq lokal chastotalari skanerlanmoqda...', 'system');
         setTimeout(() => {
           const list = nodes
@@ -214,10 +312,13 @@ export default function App() {
           return;
         }
         addLog(`>> ${target.name} (${target.ip}) bilan aloqa o'rnatildi. Shifrlovchi bufer ochilmoqda...`, 'system');
+        setDecryptorNode(null); setHackSession(value => value + 1);
         setActiveHackNode(target);
         break;
       }
       case 'grid': {
+        if (isGridActive) { addLog('Grid allaqachon faol. ESC bilan chiqing.', 'warning'); break; }
+        setGridEmp(empArmed); setEmpArmed(false);
         addLog('>> Neyron 2D Kiber-Grid rejimiga kirilmoqda...', 'system');
         setIsGridActive(true);
         break;
@@ -264,6 +365,15 @@ export default function App() {
     }
   };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      if (!inputVal.includes(' ')) {
+        const commands = [...new Set(HELP_COMMANDS.map(item => item.cmd.split(' ')[0]))].filter(cmd => cmd.startsWith(inputVal));
+        if (commands.length === 1) setInputVal(commands[0] + ' ');
+        else if (commands.length > 1) addLog(commands.join('  '), 'system');
+      }
+      return;
+    }
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault();
       if (historyIndex.current === commandHistory.current.length) historyDraft.current = inputVal;
@@ -318,6 +428,8 @@ export default function App() {
       {/* Yuqori TUI Status bar */}
       <TerminalHeader
         stats={stats}
+        soundEnabled={soundEnabled}
+        onToggleSound={() => { void setSound(!soundEnabled); }}
         isMatrixRain={isMatrixRain}
         onToggleMatrix={() => setIsMatrixRain((p) => !p)}
         onOpenHelp={() => setIsHelpOpen(true)}
@@ -332,6 +444,18 @@ export default function App() {
         >
           <span className="material-symbols-outlined text-[13px]">download</span>
           $ download
+        </button>
+        <button
+          onClick={() => executeCommand('tools')}
+          className="px-2 py-0.5 rounded bg-zinc-900 border border-cyan-700 text-cyan-300"
+        >
+          $ tools
+        </button>
+        <button
+          onClick={() => executeCommand('shop')}
+          className="px-2 py-0.5 rounded bg-zinc-900 border border-yellow-700 text-yellow-300"
+        >
+          $ shop
         </button>
         <button
           onClick={() => executeCommand('scan')}
@@ -392,7 +516,8 @@ export default function App() {
         {/* Interaktiv Mini-o'yin: Hacking Hex Puzzle */}
         {activeHackNode && (
           <HackingPuzzle
-            key={activeHackNode.id}
+            key={`${activeHackNode.id}-${hackSession}`}
+            initialHexes={decryptorNode === activeHackNode.id ? activeHackNode.codePattern.slice(0, 1) : []}
             node={activeHackNode}
             onSuccess={handleHackSuccess}
             onFail={handleHackFail}
@@ -401,6 +526,8 @@ export default function App() {
         {/* Interaktiv Mini-o'yin: 2D Grid Rogue */}
         {isGridActive && (
           <GridMiniGame
+            emp={gridEmp}
+            onDanger={() => audio.play('error')}
             paused={isHelpOpen || isDownloadOpen}
             onCollectReward={handleGridReward}
             onExit={() => {
@@ -428,7 +555,7 @@ export default function App() {
           aria-label="Terminal buyrug‘i"
           disabled={isGridActive}
           value={inputVal}
-          onChange={(e) => setInputVal(e.target.value)}
+          onChange={(e) => { setInputVal(e.target.value); audio.play('key'); }}
           onKeyDown={handleKeyDown}
           placeholder={isGridActive ? 'Grid: WASD / strelkalar. ESC bilan chiqing.' : 'Buyruq yozing: help, scan, grid, oracle <savol>...'}
           className="flex-1 bg-transparent text-emerald-300 outline-none font-mono text-xs md:text-sm placeholder-zinc-700 caret-emerald-400"
@@ -451,7 +578,7 @@ export default function App() {
       <HelpModal
         isOpen={isHelpOpen}
         onClose={() => setIsHelpOpen(false)}
-        onSelectCommand={(cmd) => executeCommand(cmd)}
+        onSelectCommand={(cmd) => { if (cmd.includes('<')) setInputVal(cmd.split(' ')[0] + ' '); else void executeCommand(cmd); }}
       />
       {/* Kodni ko'rish va yuklab olish modali */}
       <DownloadModal

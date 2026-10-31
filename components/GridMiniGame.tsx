@@ -4,20 +4,24 @@ interface GridMiniGameProps {
   onCollectReward: (credits: number, msg: string) => void;
   onExit: () => void;
   paused?: boolean;
+  emp?: boolean;
+  onDanger?: () => void;
 }
-export const GridMiniGame: React.FC<GridMiniGameProps> = ({ onCollectReward, onExit, paused = false }) => {
-  const [game, setGame] = useState(createGrid);
+export const GridMiniGame: React.FC<GridMiniGameProps> = ({ onCollectReward, onExit, paused = false, emp = false, onDanger }) => {
+  const [game, setGame] = useState(() => createGrid(Math.random, {emp}));
   const gameRef = useRef(game);
   const {player, entities, message, stepsLeft} = game;
   const movePlayer = useCallback((dx: number, dy: number) => {
     if (paused || gameRef.current.outcome !== 'active') return;
+    const previousSteps = gameRef.current.stepsLeft;
     const result = moveGrid(gameRef.current, dx, dy);
     gameRef.current = result.game;
     setGame(result.game);
     // Rewards occur once, outside React state updater callbacks.
+    if (previousSteps - result.game.stepsLeft > 1 || result.game.outcome === 'expired') onDanger?.();
     if (result.reward) onCollectReward(result.reward, result.event);
     if (result.game.outcome === 'escaped') onExit();
-  }, [onCollectReward, onExit, paused]);
+  }, [onCollectReward, onExit, paused, onDanger]);
   useEffect(() => {
     if (game.outcome !== 'expired') return;
     const timer = window.setTimeout(onExit, 1200);

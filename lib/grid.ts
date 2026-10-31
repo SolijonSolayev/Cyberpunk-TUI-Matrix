@@ -19,7 +19,7 @@ export function isGridWall(x: number, y: number) {
   return x % 5 === 0 && x <= GRID_WIDTH - 8 && y !== (x % 10 === 5 ? GRID_HEIGHT - 3 : 2);
 }
 
-export function createGrid(random = Math.random): GridState {
+export function createGrid(random = Math.random, options: {emp?: boolean} = {}): GridState {
   const spaces: {x: number; y: number}[] = [];
   for (let y = 1; y < GRID_HEIGHT - 1; y++) {
     for (let x = 1; x < GRID_WIDTH - 1; x++) {
@@ -31,7 +31,7 @@ export function createGrid(random = Math.random): GridState {
     const j = Math.floor(random() * (i + 1));
     [spaces[i], spaces[j]] = [spaces[j], spaces[i]];
   }
-  const entities: RogueEntity[] = spaces.slice(0, 7).map((position, i) => ({
+  const entities: RogueEntity[] = spaces.slice(0, options.emp ? 6 : 7).map((position, i) => ({
     ...position,
     symbol: i < 4 ? '◆' : '☠',
     color: i < 4 ? 'text-amber-400 font-bold' : 'text-red-500 font-bold',
@@ -40,7 +40,7 @@ export function createGrid(random = Math.random): GridState {
   }));
   entities.push({...GRID_PORTAL, symbol: 'Ω', color: 'text-cyan-400 font-bold', name: 'Extractor Portal', type: 'portal'});
   return {player: {...GRID_START}, entities, stepsLeft: GRID_STEPS, outcome: 'active',
-    message: 'WASD yoki strelkalar: harakat. Devorlardan o‘ting, Ω portaliga yeting. ESC: chiqish.'};
+    message: options.emp ? 'EMP faollashdi: bitta daemon o‘chirildi. Qolgan daemonlar: 2.' : 'WASD yoki strelkalar: harakat. Devorlardan o‘ting, Ω portaliga yeting. ESC: chiqish.'};
 }
 
 export function moveGrid(game: GridState, dx: number, dy: number) {

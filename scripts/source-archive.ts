@@ -9,7 +9,7 @@ export const sourceFiles = [
   'index.html', 'main.tsx', 'style.css', 'App.tsx', 'types.ts', 'constants.ts',
   'tsconfig.json', 'vite.config.ts', 'tailwind.config.cjs', 'postcss.config.cjs',
   'server.mjs', 'server/oracle.mjs', 'scripts/source-archive.ts',
-  'lib/grid.ts', 'tests/grid.spec.ts', 'lib/source.ts', 'lib/oracle.ts', 'lib/download.ts',
+  'lib/audio.ts', 'lib/tools.ts', 'tests/tools.spec.ts', 'tests/audio.spec.ts', 'lib/grid.ts', 'tests/grid.spec.ts', 'lib/source.ts', 'lib/oracle.ts', 'lib/download.ts',
   'components/DownloadModal.tsx', 'components/GridMiniGame.tsx',
   'components/HackingPuzzle.tsx', 'components/HelpModal.tsx',
   'components/MatrixRainCanvas.tsx', 'components/TerminalHeader.tsx',

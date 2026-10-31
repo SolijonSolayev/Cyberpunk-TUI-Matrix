@@ -90,3 +90,19 @@ BotID Vercel funksiyasining request konteksti va Vercel OIDC ma’lumotlariga ta
 - **Hacking:** `scan`, `hack <IP>`, HEX bufer jumboqlari, bir martalik kredit mukofotlari; xatoda CPU qiziydi. Yangi nishon yangi bufer bilan ochiladi.
 - **Oracle:** server orqali Gemini bilan suhbat; oxirgi 4 ta muvaffaqiyatli savol-javob va joriy o‘yin telemetriyasi kontekstga kiradi. Flow SDK bu mustaqil Vercel loyihasiga ulanmagan; Gemini bevosita serverdan chaqiriladi. Jonli javoblar uchun serverda `GEMINI_API_KEY` zarur. Kalitsiz oflayn kesh ishlaydi, oflayn javoblar Gemini suhbat tarixiga qo‘shilmaydi.
 - **Telemetriya:** `status`, `cool` (kamida 22°C), `upgrade` (300₢, +64 MB maksimal RAM, +32 MB RAM, +1 daraja). Reputatsiya 100 bilan chegaralanadi; har 20 ball chegarasidan o‘tilganda daraja oshadi.
+
+## Yangi buyruqlar, arsenal va ovoz
+
+`whoami` agent holatini, `history` oxirgi 20 buyruqni, `uptime` sessiya vaqtini ko‘rsatadi. `probe <IP>` faqat `scan` ro‘yxatidagi o‘yin nishonini tahlil qiladi. Tab buyruq nomini to‘ldiradi.
+
+`tools` (yoki `inventory`) inventarni, `shop` narx va effektlarni ko‘rsatadi. Har sessiya boshida har bir quroldan bittadan beriladi. Qo‘shimcha qurol uchun `buy decryptor`, `buy emp` yoki `buy coolant` yozing:
+
+| Qurol | Narx | RAM sarfi | Ishlatish va ta’siri |
+| --- | --- | --- | --- |
+| HEX Decryptor | 90₢ | 12 MB | `use decryptor <IP>` — birinchi HEX avtomatik kiritilgan jumboqni ochadi; bir urinishga bir dona |
+| EMP Pulse | 120₢ | 18 MB | `use emp` — faqat keyingi `grid` o‘yinida daemonlar soni 3 dan 2 ga kamayadi |
+| Cryo Patch | 60₢ | 0 MB | `use coolant` — CPU −35°C (kamida 22°C), RAM +24 MB (maksimal RAMgacha) |
+
+Noto‘g‘ri yoki allaqachon buzilgan nishon, tayyor EMP, kam mablag‘/RAM holatida qurol sarflanmaydi. Bular o‘yin mexanikalari; tashqi tarmoqqa so‘rov yoki hujum yubormaydi.
+
+Audio standart holatda o‘chiq va sahifa yangilanganda yana o‘chadi. `sound on` yoki yuqoridagi SOUND tugmasi bilan yoqing; `sound off` darhol o‘chiradi. `sound volume 0`–`sound volume 100` balandlikni sozlaydi (standart 20%), `sound test` namunani ijro etadi. Web Audio API klaviatura, buyruq, skan, mukofot, ogohlantirish va xato tovushlarini brauzerning o‘zida sintez qiladi; audio fayllar/CDN/paketlar kerak emas. Audio qo‘llanmasa o‘yin ovozsiz ishlayveradi.

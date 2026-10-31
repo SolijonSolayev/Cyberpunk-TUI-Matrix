@@ -18,6 +18,17 @@ export const HELP_COMMANDS = [
   { cmd: 'cool', desc: 'CPU qizishini pasaytirish va keshni tozalash' },
   { cmd: 'upgrade', desc: 'Credits evaziga RAM va dasturiy ta\'minotni kuchaytirish' },
   { cmd: 'matrix', desc: 'Matritsa yomg\'iri vizual rejimini yoqish/o\'chirish' },
+  { cmd: 'whoami', desc: 'Agent identifikatori, darajasi va reputatsiyasi' },
+  { cmd: 'history', desc: 'Oxirgi 20 ta terminal buyrug‘i' },
+  { cmd: 'uptime', desc: 'Joriy sessiya davomiyligi' },
+  { cmd: 'probe <IP>', desc: 'O‘yin nishonining himoyasi, mukofoti va bufer uzunligi' },
+  { cmd: 'tools', desc: 'Xakerlik qurollari inventari va tayyorlangan EMP' },
+  { cmd: 'shop', desc: 'Qurollar narxi, RAM talabi va imkoniyatlari' },
+  { cmd: 'buy <qurol>', desc: 'decryptor (90₢), emp (120₢), coolant (60₢) sotib olish' },
+  { cmd: 'use <qurol> [IP]', desc: 'use decryptor <IP>, use emp yoki use coolant' },
+  { cmd: 'sound on', desc: 'Audio effektlarni yoqish (sound off bilan o‘chirish)' },
+  { cmd: 'sound volume 20', desc: 'Ovoz balandligini 0–100 oralig‘ida sozlash' },
+  { cmd: 'sound test', desc: 'Audio yoqilgan bo‘lsa namuna ovozini eshitish' },
   { cmd: 'clear', desc: 'Terminal ekranini tozalash' }
 ];
 export const INITIAL_NODES = [

@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { HackNode } from '../types';
 interface HackingPuzzleProps {
   node: HackNode;
+  initialHexes?: string[];
   onSuccess: (credits: number) => void;
   onFail: () => void;
 }
 const HEX_POOL = ['0xAA', '0x1F', '0x7C', '0xDE', '0xAD', '0xBE', '0xEF', '0xFF', '0x00', '0x42', '0x99', '0x3A'];
-export const HackingPuzzle: React.FC<HackingPuzzleProps> = ({ node, onSuccess, onFail }) => {
-  const [selectedHexes, setSelectedHexes] = useState<string[]>([]);
-  const [statusMsg, setStatusMsg] = useState<string>('Nishon buferiga kerakli ketma-ketlikni inyeksiya qiling.');
+export const HackingPuzzle: React.FC<HackingPuzzleProps> = ({ node, onSuccess, onFail, initialHexes = [] }) => {
+  const [selectedHexes, setSelectedHexes] = useState<string[]>(() => initialHexes.slice(0, node.codePattern.length - 1));
+  const [statusMsg, setStatusMsg] = useState<string>(initialHexes.length ? 'Decryptor birinchi HEX kodini kiritdi. Qolgan kodlarni tanlang.' : 'Nishon buferiga kerakli ketma-ketlikni inyeksiya qiling.');
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clearTimer = () => { if (timer.current) clearTimeout(timer.current); timer.current = null; };
   useEffect(() => clearTimer, []);
@@ -31,7 +32,7 @@ export const HackingPuzzle: React.FC<HackingPuzzleProps> = ({ node, onSuccess, o
   };
   const handleReset = () => {
     clearTimer();
-    setSelectedHexes([]);
+    setSelectedHexes(initialHexes.slice(0, node.codePattern.length - 1));
     setStatusMsg('Kesh tozalandi. Qaytadan urinib ko\'ring.');
   };
   return (
