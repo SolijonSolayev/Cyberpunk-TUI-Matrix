@@ -1,0 +1,40 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import type { Plugin } from 'vite';
+
+// Explicit allowlist: local .env files, credentials, caches and generated output
+// can never be included in the browser's downloadable project.
+export const sourceFiles = [
+  '.gitignore', '.env.example', '.nvmrc', 'README.md', 'package.json', 'package-lock.json',
+  'index.html', 'main.tsx', 'style.css', 'App.tsx', 'types.ts', 'constants.ts',
+  'tsconfig.json', 'vite.config.ts', 'tailwind.config.cjs', 'postcss.config.cjs',
+  'server.mjs', 'server/oracle.mjs', 'scripts/source-archive.ts',
+  'lib/source.ts', 'lib/oracle.ts', 'lib/download.ts',
+  'components/DownloadModal.tsx', 'components/GridMiniGame.tsx',
+  'components/HackingPuzzle.tsx', 'components/HelpModal.tsx',
+  'components/MatrixRainCanvas.tsx', 'components/TerminalHeader.tsx',
+  'playwright.config.ts', 'tests/app.spec.ts', 'tests/oracle.test.mjs',
+  '.github/workflows/ci.yml'
+];
+export function sourceArchive(): Plugin {
+  let root: string;
+  const archive = async () => Object.fromEntries(await Promise.all(sourceFiles.map(async file =>
+    [file, await fs.readFile(path.join(root, file), 'utf8')]
+  )));
+  return {
+    name: 'source-archive',
+    configResolved(config) { root = config.root; },
+    configureServer(server) {
+      server.middlewares.use('/source-code.json', async (_req, res, next) => {
+        try {
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-store');
+          res.end(JSON.stringify(await archive()));
+        } catch (error) { next(error); }
+      });
+    },
+    async generateBundle() {
+      this.emitFile({type: 'asset', fileName: 'source-code.json', source: JSON.stringify(await archive())});
+    }
+  };
+}

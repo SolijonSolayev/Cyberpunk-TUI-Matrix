@@ -1,2 +1,64 @@
-# Cyberpunk-TUI-Matrix
-Cyberpunk TUI Matrix - Hacking simulator
+# Cyberpunk TUI Matrix
+
+O‘zbek tilidagi React + TypeScript kiberpank terminal o‘yini. Matrix animatsiyasi, HEX jumboqlar, 2D mini-o‘yin va ixtiyoriy Gemini Oracle mavjud. `scan` va `hack` faqat o‘yin ichidagi simulyatsiya; haqiqiy tarmoqqa hujum qilmaydi.
+
+## O‘rnatish va ishga tushirish
+
+Node.js 24 LTS tavsiya etiladi (minimum 22.12), npm kerak.
+
+```sh
+git clone https://github.com/SolijonSolayev/Cyberpunk-TUI-Matrix.git
+cd Cyberpunk-TUI-Matrix
+npm ci
+npm run dev
+```
+
+Brauzerda `http://127.0.0.1:5173` ni oching. Barcha paketlar va ikonka shriftlari npm orqali o‘rnatiladi; Flow sandbox yoki tashqi CDN kerak emas.
+
+Production:
+
+```sh
+npm run build
+npm start
+```
+
+`HOST` (standart `127.0.0.1`) va `PORT` (standart `5173`) bilan server manzilini o‘zgartirish mumkin. Tashqi joylashtirishda HTTPS, autentifikatsiya va foydalanuvchi bo‘yicha rate limitni reverse proxy orqali sozlang; AI endpointi standart holatda faqat lokal ishlatish uchun mo‘ljallangan.
+
+## Oracle AI — ixtiyoriy
+
+Kalitsiz ham o‘yin ishlaydi: `oracle <savol>` mavjud oflayn keshdan javob beradi. Jonli Gemini uchun:
+
+1. `.env.example` faylidan `.env` nusxasini yarating.
+2. `GEMINI_API_KEY` qiymatini o‘sha lokal faylga yoki hostingning maxfiy sozlamalariga kiriting.
+3. Kerak bo‘lsa `GEMINI_MODEL` ni o‘zgartiring (standart `gemini-2.5-flash`).
+4. Serverni qayta ishga tushiring.
+
+Kalit faqat Node serverida o‘qiladi; `VITE_` prefiksi ishlatmang, kalitni GitHub’ga yubormang. Server `generativelanguage.googleapis.com` ga HTTPS orqali murojaat qiladi, `HTTP_PROXY`/`HTTPS_PROXY` va tizim CA sozlamalarini qo‘llaydi. Tarmoq cheklangan muhitda shu domen uchun ruxsat kerak. API kvotasi va modelga kirish Google hisobingizga bog‘liq. AI so‘rovi 15 soniyada bekor qilinadi; xato yoki kalit bo‘lmasa o‘yin oflayn javobga qaytadi.
+
+## Buyruqlar
+
+| Buyruq | Vazifasi |
+| --- | --- |
+| `help` | Buyruqlar ro‘yxati |
+| `scan` | Uchta o‘yin nishonini ko‘rsatish |
+| `hack <IP>` | HEX jumboqni yechish va kredit olish |
+| `grid` | WASD yoki strelkalar bilan mini-o‘yin, Escape bilan chiqish |
+| `status`, `cool`, `upgrade` | Resurslarni ko‘rish, sovutish, RAM oshirish |
+| `matrix`, `clear` | Animatsiyani almashtirish, terminalni tozalash |
+| `oracle <savol>` | Jonli AI yoki oflayn javob |
+| `download` | Haqiqiy loyiha fayllarini ko‘rish, nusxalash va ZIP yuklash |
+
+O‘yin holati hozircha brauzer xotirasida: sahifa yangilansa qayta boshlanadi.
+
+## Tekshirish
+
+```sh
+npm test
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
+
+Linux CI uchun `npx playwright install --with-deps chromium`. Oldindan o‘rnatilgan Chromium uchun `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e`. E2E testlar 5180-portda production serverini avtomatik ishga tushiradi. Unit testlar Gemini protokolini mock bilan, brauzer testlari buyruqlar, mukofotlar, mini-o‘yin, AI fallback va yuklab olingan ZIP tarkibini tekshiradi. Haqiqiy pullik Gemini so‘rovlari avtomatik testlarda yuborilmaydi.
+
+ZIP `scripts/source-archive.ts` dagi aniq ro‘yxatdan yig‘iladi. Unda haqiqiy manbalar, lockfile va ishga tushirish fayllari bor; `.env`, maxfiy kalitlar, `node_modules` va build natijalari kiritilmaydi. Yangi loyiha fayli qo‘shilsa shu ro‘yxatni ham yangilang.

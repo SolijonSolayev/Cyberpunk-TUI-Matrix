@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Flow } from 'flow-sdk';
+import React, { useState, useEffect } from 'react';
+import { downloadBlob } from '../lib/download';
 import JSZip from 'jszip';
-import { APP_SOURCE_CODE } from '../constants';
+import { loadSource } from '../lib/source';
 interface DownloadModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -10,64 +10,45 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose })
   const [activeFile, setActiveFile] = useState<string>('App.tsx');
   const [downloadStatus, setDownloadStatus] = useState<'idle' | 'downloading' | 'done' | 'error'>('idle');
   const [copiedFile, setCopiedFile] = useState<string | null>(null);
+  const [source, setSource] = useState<Record<string, string>>({});
+  const [error, setError] = useState('');
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    setError('');
+    loadSource().then(files => { if (!cancelled) setSource(files); })
+      .catch(() => { if (!cancelled) setError('Manba fayllarini yuklab bo‘lmadi. Oynani qayta oching.'); });
+    return () => { cancelled = true; };
+  }, [isOpen]);
   if (!isOpen) return null;
-  const files = Object.keys(APP_SOURCE_CODE);
-  // Butun loyiha kodlarini ZIP qilib Flow.download orqali yuklash
+  const files = Object.keys(source);
   const handleDownloadZip = async () => {
     setDownloadStatus('downloading');
+    setError('');
     try {
       const zip = new JSZip();
-      // README qo'shish
-      zip.file(
-        'README.md',
-        `# Cyberpunk TUI Matrix\n\nZamonaviy TUI / CLI kiberpank operatsion tizimi va mini-o'yinlari.\n\nIshga tushirish uchun React 19 + TypeScript va Tailwind CSS dan foydalaning.`
-      );
-      // Har bir faylni arxivga qo'shish
-      for (const [filename, content] of Object.entries(APP_SOURCE_CODE)) {
-        zip.file(filename, content);
-      }
-      const blob = await zip.generateAsync({ type: 'blob' });
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64 = (reader.result as string).split(',')[1];
-        await Flow.download({
-          base64,
-          mimeType: 'application/zip',
-          filename: 'Cyberpunk_TUI_Matrix_SourceCode.zip'
-        });
-        setDownloadStatus('done');
-        setTimeout(() => setDownloadStatus('idle'), 3000);
-      };
-      reader.readAsDataURL(blob);
-    } catch (err) {
-      console.error(err);
+      for (const [filename, content] of Object.entries(source)) zip.file(filename, content);
+      downloadBlob(await zip.generateAsync({type: 'blob'}), 'Cyberpunk_TUI_Matrix_SourceCode.zip');
+      setDownloadStatus('done');
+    } catch {
       setDownloadStatus('error');
-      setTimeout(() => setDownloadStatus('idle'), 3000);
+      setError('ZIP arxivini yaratib bo‘lmadi. Qayta urinib ko‘ring.');
     }
   };
-  // Tanlangan faylni alohida .tsx/.ts qilib yuklab olish
-  const handleDownloadSingleFile = async () => {
+  const handleDownloadSingleFile = () => {
     try {
-      const content = APP_SOURCE_CODE[activeFile] || '';
-      const base64 = btoa(unescape(encodeURIComponent(content)));
-      await Flow.download({
-        base64,
-        mimeType: 'text/plain',
-        filename: activeFile
-      });
-    } catch (err) {
-      console.error(err);
-    }
+      downloadBlob(new Blob([source[activeFile]], {type: 'text/plain;charset=utf-8'}), activeFile);
+    } catch { setError('Faylni yuklab bo‘lmadi.'); }
   };
   // Fayl matnini buferga (clipboard) nusxalash
   const handleCopyCode = async () => {
     try {
-      const code = APP_SOURCE_CODE[activeFile] || '';
+      const code = source[activeFile] || '';
       await navigator.clipboard.writeText(code);
       setCopiedFile(activeFile);
       setTimeout(() => setCopiedFile(null), 2000);
     } catch (err) {
-      console.error(err);
+      setError('Nusxa olish uchun brauzer ruxsati kerak.');
     }
   };
   return (
@@ -93,6 +74,7 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose })
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
+        {error && <p role="alert" className="text-red-400 px-4 py-2">{error}</p>}
         {/* Asosiy ish maydoni: Fayllar ro'yxati va Kod ko'ruvchi */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
           {/* Chap tomon: Fayllar navigatori */}
@@ -142,7 +124,7 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose })
                   <span>{copiedFile === activeFile ? 'Nusxalandi ✓' : 'Nusxa olish'}</span>
                 </button>
                 <button
-                  onClick={handleDownloadSingleFile}
+                  disabled={!source[activeFile]} onClick={handleDownloadSingleFile}
                   className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 border border-emerald-700/60 text-emerald-300 hover:text-emerald-200 rounded flex items-center gap-1 transition-all"
                 >
                   <span className="material-symbols-outlined text-[14px]">download</span>
@@ -151,7 +133,7 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose })
               </div>
             </div>
             <pre className="flex-1 overflow-auto bg-black/90 p-3 rounded border border-zinc-900 text-zinc-300 text-[11px] font-mono leading-relaxed select-all">
-              <code>{APP_SOURCE_CODE[activeFile]}</code>
+              <code>{source[activeFile]}</code>
             </pre>
           </div>
         </div>
@@ -160,7 +142,7 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose })
           <div className="text-[11px] text-zinc-400 flex items-center gap-2">
             <span className="material-symbols-outlined text-[16px] text-yellow-400">info</span>
             <span>
-              Loyiha kodlari Flow sandboxed tizimi xavfsiz yuklash protokoli orqali uzatiladi.
+              Haqiqiy loyiha fayllari brauzer orqali yuklanadi. Maxfiy sozlamalar arxivga kirmaydi.
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -172,7 +154,7 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose })
             </button>
             <button
               onClick={handleDownloadZip}
-              disabled={downloadStatus === 'downloading'}
+              disabled={downloadStatus === 'downloading' || files.length === 0}
               className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-black font-bold rounded shadow-[0_0_15px_rgba(16,185,129,0.4)] flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-[16px]">folder_zip</span>

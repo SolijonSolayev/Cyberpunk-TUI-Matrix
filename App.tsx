@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Flow } from 'flow-sdk';
+import { askOracle } from './lib/oracle';
 import { PlayerStats, TerminalLog, HackNode } from './types';
 import { ASCII_HEADER, INITIAL_NODES } from './constants';
 import { TerminalHeader } from './components/TerminalHeader';
@@ -204,6 +204,7 @@ export default function App() {
         break;
       }
       case 'oracle': {
+        if (isAiThinking) { addLog('AI javobini kuting.', 'warning'); return; }
         const question = args.join(' ');
         if (!question) {
           addLog('XATOLIK: Savol kiritilmadi! Masalan: oracle kiber-urush nima?', 'error');
@@ -213,19 +214,9 @@ export default function App() {
         addLog(`>> Kiber-AI yadrosiga so'rov yuborilmoqda: "${question}"...`, 'system');
         let answered = false;
         try {
-          const response = await Flow.generate.text(
-            `Kiberpank olamidagi TUI operatsion tizimining sun'iy intellekti kabi qisqa, kiber-uslubda va o'zbek tilida javob bering. Savol: ${question}`,
-            {
-              systemInstruction: 'Siz 2099-yil kiberpank kompyuteri TUI terminalidagi sun\'iy intellektsiz. Qisqa va ta\'sirchan o\'zbek tilida javob bering.'
-            }
-          ).catch((error) => {
-            console.warn('Flow.generate.text xatoligi ushlandi:', error);
-            return null;
-          });
-          if (response && response.text) {
-            addLog(`[AI_ORACLE]: ${response.text}`, 'ai');
-            answered = true;
-          }
+          const text = await askOracle(question);
+          addLog(`[AI_ORACLE]: ${text}`, 'ai');
+          answered = true;
         } catch (outerErr) {
           console.warn('Tashqi Oracle xatoligi:', outerErr);
         }
@@ -233,7 +224,7 @@ export default function App() {
         if (!answered) {
           const fallback = OFFLINE_ORACLE_RESPONSES[Math.floor(Math.random() * OFFLINE_ORACLE_RESPONSES.length)];
           addLog(
-            `[OGOHLANTIRISH]: Masofaviy neyron tarmoq serveri vaqtincha band (Service temporarily unavailable). Lokal kiber-kesh ishga tushirildi:\n${fallback}`,
+            `[OGOHLANTIRISH]: Jonli AI sozlanmagan yoki hozir javob bermadi. Oflayn kiber-kesh ishga tushirildi:\n${fallback}`,
             'warning'
           );
         }
