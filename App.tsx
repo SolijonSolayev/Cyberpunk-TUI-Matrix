@@ -1,3 +1,4 @@
+import {DarkGradientBg} from '@/components/ui/elegant-dark-pattern';
 import {Icon} from './components/Icon';
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { askOracle, type OracleMessage } from './lib/oracle';
@@ -429,6 +430,7 @@ export default function App() {
     addLog(`>> GRID REJIMIDAN: ${msg}`, 'success');
   };
   return (
+    <DarkGradientBg className="app-background h-full min-h-[550px]">
     <main
       onClick={focusInput}
       className="crt-terminal relative w-full h-full min-h-[550px] flex flex-col bg-[#050805] text-[#22c55e] font-mono select-text overflow-hidden"
@@ -610,5 +612,6 @@ export default function App() {
         <BrowserWorkspace open={isWorkspaceOpen} onClose={() => setIsWorkspaceOpen(false)}/>
       </Suspense>}
     </main>
+    </DarkGradientBg>
   );
 }

@@ -1,1 +1,1 @@
-module.exports = { content: ['./index.html','./*.tsx','./components/**/*.tsx','./constants.ts'], theme: {extend: {}}, plugins: [] };
+module.exports = { content: ['./index.html','./*.tsx','./components/**/*.tsx','./constants.ts'], theme: {extend: {backgroundImage: {'gradient-radial': 'radial-gradient(ellipse at top left, var(--tw-gradient-stops))'}}}, plugins: [] };

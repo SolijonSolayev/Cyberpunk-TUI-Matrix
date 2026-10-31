@@ -131,3 +131,21 @@ npm run start
 ```
 
 Muharrir, IndexedDB, ZIP va Node starter testlari runtime xizmatiga tayanmasdan tekshiriladi. Haqiqiy WebContainer boot va npm internet ulanishi alohida brauzer tekshiruvini talab qiladi; uni oddiy o‘yin testlari o‘tganidan kelib chiqib tasdiqlamang.
+
+### UI komponentlari va fon
+
+Loyiha TypeScript va Tailwind CSS bilan sozlangan. Asosiy komponentlar `components/`,
+shadcn bilan mos qayta ishlatiladigan UI komponentlari `components/ui/` ichida;
+umumiy stillar `style.css` faylida. `components.json` shadcn CLI uchun shu yo‘llarni
+belgilaydi. `components/ui/` katalogi yangi UI komponentlari terminalning o‘yin
+komponentlari bilan aralashmasligi va CLI importlari mos bo‘lishi uchun kerak.
+`@/` aliasi TypeScript va Vite’da loyiha ildiziga yo‘naltirilgan.
+
+`DarkGradientBg` (`components/ui/elegant-dark-pattern.tsx`) terminalni o‘raydi;
+`children` kontentni, `className` qo‘shimcha Tailwind stillarini qabul qiladi.
+Provider yoki state talab qilmaydi. Ko‘k gradientlar, nuqtalar va tekstura CSS bilan
+chiziladi, tashqi rasm yoki ikonka paketi yuklanmaydi. Namuna: `components/ui/demo.tsx`.
+`cn()` yordamchisi `clsx` va `tailwind-merge` orqali klasslarni birlashtiradi.
+
+Keyinchalik shadcn komponenti qo‘shish: `npx shadcn@latest add button`.
+TypeScript, Tailwind yoki shadcn init’ni qayta ishlatish shart emas.
